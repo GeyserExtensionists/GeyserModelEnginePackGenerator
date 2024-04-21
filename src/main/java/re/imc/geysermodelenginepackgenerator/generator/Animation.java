@@ -66,8 +66,8 @@ public class Animation {
                 }
                 if (name.startsWith("h_") || name.startsWith("hi_")) {
                     bones.add(name, new JsonParser().parse(HEAD_TEMPLATE));
+                    i++;
                 }
-                i++;
             }
         }
         if (i == 0) {
@@ -75,6 +75,7 @@ public class Animation {
         }
         GeneratorMain.entityMap
                         .get(modelId).setHasHeadAnimation(true);
+
         object.add("bones", bones);
         json.get("animations").getAsJsonObject().add("animation." + modelId + ".look_at_target", object);
     }

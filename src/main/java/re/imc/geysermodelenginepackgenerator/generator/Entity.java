@@ -26,8 +26,9 @@ public class Entity {
                     "default": "%geometry%"
                   },
                   "animations": {
-                    "default": "animation.%geometry%.idle",
+                    "default": "animation.%entity_id%.idle",
                     "look_at_target": "%look_at_target%"
+                   
                   },
                   "scripts": {
                     "animate": [

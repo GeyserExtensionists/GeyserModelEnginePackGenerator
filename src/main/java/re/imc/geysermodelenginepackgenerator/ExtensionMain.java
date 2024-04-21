@@ -25,11 +25,13 @@ public class ExtensionMain implements Extension {
         File[] files = source.listFiles();
         if (files != null) {
             for (File file : files) {
-                String id = "modelengine:" + file.getName();
+                String id = "modelengine:" + file.getName().toLowerCase();
                 GeyserUtils.addCustomEntity(id);
             }
         }
     }
+
+
     @Subscribe
     public void onPackLoad(GeyserLoadResourcePacksEvent event) {
 

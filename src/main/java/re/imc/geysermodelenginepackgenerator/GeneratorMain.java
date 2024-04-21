@@ -40,7 +40,7 @@ public class GeneratorMain {
                 if (file1.listFiles() == null) {
                     continue;
                 }
-                String modelId = file1.getName();
+                String modelId = file1.getName().toLowerCase();
 
                 entityMap.put(modelId, new Entity(modelId));
                 for (File e : file1.listFiles()) {
@@ -59,7 +59,6 @@ public class GeneratorMain {
                             }
 
                             if (isGeometryFile(json)) {
-                                System.out.println("G");
                                 Geometry geometry = new Geometry();
                                 geometry.load(json);
                                 geometry.setModelId(modelId);

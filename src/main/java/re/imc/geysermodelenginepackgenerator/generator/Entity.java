@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Properties;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,7 +19,7 @@ public class Entity {
                 "description": {
                   "identifier": "modelengine:%entity_id%",
                   "materials": {
-                    "default": "entity_alphatest"
+                    "default": "%material%"
                   },
                   "textures": {
                     "default": "%texture%"
@@ -37,7 +39,7 @@ public class Entity {
                     ]
                   },
                   "render_controllers": [
-                    "controller.render.default"
+                    "%render_controller%"
                   ]
                 }
               }
@@ -48,6 +50,9 @@ public class Entity {
     String modelId;
     String json;
     boolean hasHeadAnimation = false;
+
+    Properties properties = new Properties();
+
     public Entity(String modelId) {
         this.modelId = modelId;
     }
@@ -56,7 +61,11 @@ public class Entity {
         json = TEMPLATE.replace("%entity_id%", modelId)
                 .replace("%geometry%", "geometry.modelengine_" + modelId)
                 .replace("%texture%", "textures/entity/" + modelId)
-                .replace("%look_at_target%", hasHeadAnimation ? "animation." + modelId + ".look_at_target" : "animation.common.look_at_target")
+                .replace("%look_at_target%",  "animation." + modelId + ".look_at_target")
+                .replace("%material%", properties.getProperty("material", "entity_alphatest"))
+                .replace("%render_controller%", properties.getProperty("render_controller", "controller.render.default"))
+
+
         ;
     }
 

@@ -2,10 +2,12 @@ package re.imc.geysermodelenginepackgenerator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import re.imc.geysermodelenginepackgenerator.generator.*;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class GeneratorMain {
     public static final Map<String, Entity> entityMap = new HashMap<>();
@@ -42,12 +45,20 @@ public class GeneratorMain {
                 }
                 String modelId = file1.getName().toLowerCase();
 
-                entityMap.put(modelId, new Entity(modelId));
+                Entity entity = new Entity(modelId);
+                entityMap.put(modelId, entity);
+
                 for (File e : file1.listFiles()) {
                     if (e.getName().endsWith(".png")) {
                         textureMap.put(modelId, new Texture(modelId, e.toPath()));
                     }
-
+                    if (e.getName().equals("config.properties")) {
+                        try {
+                            entity.getProperties().load(new FileReader(e));
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
                     if (e.getName().endsWith(".json")) {
                         try {
                             String json = Files.readString(e.toPath());
@@ -83,18 +94,28 @@ public class GeneratorMain {
             generateManifest = true;
         }
         File[] files = entityFolder.listFiles();
-        if (files == null || files.length < entityMap.size()) {
+        if (files == null || files.length != entityMap.size()) {
             generateManifest = true;
         }
 
         if (generateManifest) {
             output.mkdirs();
             Path path = new File(output, "manifest.json").toPath();
-            try {
-                Files.writeString(path,
-                        PackManifest.generate(), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (path.toFile().exists()) {
+                try {
+                    JsonObject manifest = new JsonParser().parse(Files.readString(path)).getAsJsonObject();
+                    manifest.get("header").getAsJsonObject().addProperty("uuid", UUID.randomUUID().toString());
+                    Files.writeString(path, GSON.toJson(manifest));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    Files.writeString(path,
+                            PackManifest.generate(), StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -110,6 +131,9 @@ public class GeneratorMain {
                 stringAnimationEntry.getValue().addHeadBind(geo);
             }
             Path path = animationsFolder.toPath().resolve(stringAnimationEntry.getKey() + ".animation.json");
+            if (path.toFile().exists()) {
+                continue;
+            }
             try {
                 Files.writeString(path, GSON.toJson(stringAnimationEntry.getValue().getJson()), StandardCharsets.UTF_8);
             } catch (IOException e) {
@@ -120,6 +144,9 @@ public class GeneratorMain {
         for (Map.Entry<String, Geometry> stringGeometryEntry : geometryMap.entrySet()) {
             stringGeometryEntry.getValue().modify();
             Path path = modelsFolder.toPath().resolve(stringGeometryEntry.getKey() + ".geo.json");
+            if (path.toFile().exists()) {
+                continue;
+            }
             try {
                 Files.writeString(path, GSON.toJson(stringGeometryEntry.getValue().getJson()), StandardCharsets.UTF_8);
             } catch (IOException e) {
@@ -129,6 +156,9 @@ public class GeneratorMain {
 
         for (Map.Entry<String, Texture> stringTextureEntry : textureMap.entrySet()) {
             Path path = texturesFolder.toPath().resolve(stringTextureEntry.getKey() + ".png");
+            if (path.toFile().exists()) {
+                continue;
+            }
             try {
                 Files.copy(stringTextureEntry.getValue().getPath(), path, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
@@ -139,7 +169,9 @@ public class GeneratorMain {
         for (Map.Entry<String, Entity> stringEntityEntry : entityMap.entrySet()) {
             stringEntityEntry.getValue().modify();
             Path path = entityFolder.toPath().resolve(stringEntityEntry.getKey() + ".entity.json");
-
+            if (path.toFile().exists()) {
+                continue;
+            }
             try {
                 Files.writeString(path, stringEntityEntry.getValue().getJson(), StandardCharsets.UTF_8);
             } catch (IOException e) {

@@ -39,7 +39,6 @@ public class ExtensionMain implements Extension {
 
         GeneratorMain.startGenerate(source, generatedPack);
 
-
         Path generatedPackZip = dataFolder().resolve("generated_pack.zip");
 
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(generatedPackZip))) {

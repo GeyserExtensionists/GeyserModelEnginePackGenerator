@@ -34,6 +34,8 @@ public class Animation {
     String modelId;
     JsonObject json;
 
+    String path;
+
     public void load(String json) {
         this.json = new JsonParser().parse(json).getAsJsonObject();
     }

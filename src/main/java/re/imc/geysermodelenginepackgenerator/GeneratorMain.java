@@ -23,7 +23,6 @@ public class GeneratorMain {
     public static final  Map<String, Geometry> geometryMap = new HashMap<>();
     public static final  Map<String, Texture> textureMap = new HashMap<>();
     public static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
             .create();
 
 
@@ -35,6 +34,57 @@ public class GeneratorMain {
         startGenerate(source, output);
     }
 
+    public static void generateFromFolder(String currentPath, File folder) {
+        if (folder.listFiles() == null) {
+            return;
+        }
+        String modelId = folder.getName().toLowerCase();
+
+        Entity entity = new Entity(modelId);
+        boolean canAdd = false;
+        for (File e : folder.listFiles()) {
+            if (e.isDirectory()) {
+                generateFromFolder(currentPath + folder.getName() + "/", e);
+            }
+            if (e.getName().endsWith(".png")) {
+                canAdd = true;
+                textureMap.put(modelId, new Texture(modelId, currentPath, e.toPath()));
+            }
+            if (e.getName().equals("config.properties")) {
+                try {
+                    entity.getProperties().load(new FileReader(e));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            if (e.getName().endsWith(".json")) {
+                try {
+                    String json = Files.readString(e.toPath());
+                    if (isAnimationFile(json)) {
+                        Animation animation = new Animation();
+                        animation.setPath(currentPath);
+                        animation.load(json);
+                        animation.setModelId(modelId);
+                        animationMap.put(modelId, animation);
+                    }
+
+                    if (isGeometryFile(json)) {
+                        Geometry geometry = new Geometry();
+                        geometry.load(json);
+                        geometry.setPath(currentPath);
+                        geometry.setModelId(modelId);
+                        geometryMap.put(modelId, geometry);
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        if (canAdd) {
+            entity.setPath(currentPath);
+            entityMap.put(modelId, entity);
+        }
+    }
     public static void startGenerate(File source, File output) {
 
 
@@ -43,43 +93,7 @@ public class GeneratorMain {
                 if (file1.listFiles() == null) {
                     continue;
                 }
-                String modelId = file1.getName().toLowerCase();
-
-                Entity entity = new Entity(modelId);
-                entityMap.put(modelId, entity);
-
-                for (File e : file1.listFiles()) {
-                    if (e.getName().endsWith(".png")) {
-                        textureMap.put(modelId, new Texture(modelId, e.toPath()));
-                    }
-                    if (e.getName().equals("config.properties")) {
-                        try {
-                            entity.getProperties().load(new FileReader(e));
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                    if (e.getName().endsWith(".json")) {
-                        try {
-                            String json = Files.readString(e.toPath());
-                            if (isAnimationFile(json)) {
-                                Animation animation = new Animation();
-                                animation.load(json);
-                                animation.setModelId(modelId);
-                                animationMap.put(modelId, animation);
-                            }
-
-                            if (isGeometryFile(json)) {
-                                Geometry geometry = new Geometry();
-                                geometry.load(json);
-                                geometry.setModelId(modelId);
-                                geometryMap.put(modelId, geometry);
-                            }
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                }
+                generateFromFolder("", file1);
             }
         }
 
@@ -89,18 +103,19 @@ public class GeneratorMain {
         File texturesFolder = new File(output, "textures/entity");
 
 
+        File manifestFile = new File(output, "manifest.json");
         boolean generateManifest = false;
         if (!entityFolder.exists()) {
             generateManifest = true;
         }
         File[] files = entityFolder.listFiles();
-        if (files == null || files.length != entityMap.size()) {
+        if (!manifestFile.exists() || files == null || files.length != entityMap.size()) {
             generateManifest = true;
         }
 
         if (generateManifest) {
             output.mkdirs();
-            Path path = new File(output, "manifest.json").toPath();
+            Path path = manifestFile.toPath();
             if (path.toFile().exists()) {
                 try {
                     JsonObject manifest = new JsonParser().parse(Files.readString(path)).getAsJsonObject();
@@ -124,56 +139,63 @@ public class GeneratorMain {
         modelsFolder.mkdirs();
         texturesFolder.mkdirs();
 
-        for (Map.Entry<String, Animation> stringAnimationEntry : animationMap.entrySet()) {
-            stringAnimationEntry.getValue().modify();
-            Geometry geo = geometryMap.get(stringAnimationEntry.getKey());
+        for (Map.Entry<String, Animation> entry : animationMap.entrySet()) {
+            entry.getValue().modify();
+            Geometry geo = geometryMap.get(entry.getKey());
             if (geo != null) {
-                stringAnimationEntry.getValue().addHeadBind(geo);
+                entry.getValue().addHeadBind(geo);
             }
-            Path path = animationsFolder.toPath().resolve(stringAnimationEntry.getKey() + ".animation.json");
+            Path path = animationsFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".animation.json");
+            path.toFile().getParentFile().mkdirs();
+
             if (path.toFile().exists()) {
                 continue;
             }
             try {
-                Files.writeString(path, GSON.toJson(stringAnimationEntry.getValue().getJson()), StandardCharsets.UTF_8);
+                Files.writeString(path, GSON.toJson(entry.getValue().getJson()), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        for (Map.Entry<String, Geometry> stringGeometryEntry : geometryMap.entrySet()) {
-            stringGeometryEntry.getValue().modify();
-            Path path = modelsFolder.toPath().resolve(stringGeometryEntry.getKey() + ".geo.json");
+        for (Map.Entry<String, Geometry> entry : geometryMap.entrySet()) {
+            entry.getValue().modify();
+            Path path = modelsFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".geo.json");
+            path.toFile().getParentFile().mkdirs();
+
             if (path.toFile().exists()) {
                 continue;
             }
             try {
-                Files.writeString(path, GSON.toJson(stringGeometryEntry.getValue().getJson()), StandardCharsets.UTF_8);
+                Files.writeString(path, GSON.toJson(entry.getValue().getJson()), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        for (Map.Entry<String, Texture> stringTextureEntry : textureMap.entrySet()) {
-            Path path = texturesFolder.toPath().resolve(stringTextureEntry.getKey() + ".png");
+        for (Map.Entry<String, Texture> entry : textureMap.entrySet()) {
+            Path path = texturesFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".png");
+            path.toFile().getParentFile().mkdirs();
+
             if (path.toFile().exists()) {
                 continue;
             }
             try {
-                Files.copy(stringTextureEntry.getValue().getPath(), path, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(entry.getValue().getOriginalPath(), path, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        for (Map.Entry<String, Entity> stringEntityEntry : entityMap.entrySet()) {
-            stringEntityEntry.getValue().modify();
-            Path path = entityFolder.toPath().resolve(stringEntityEntry.getKey() + ".entity.json");
+        for (Map.Entry<String, Entity> entry : entityMap.entrySet()) {
+            entry.getValue().modify();
+            Path path = entityFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".entity.json");
+            path.toFile().getParentFile().mkdirs();
             if (path.toFile().exists()) {
                 continue;
             }
             try {
-                Files.writeString(path, stringEntityEntry.getValue().getJson(), StandardCharsets.UTF_8);
+                Files.writeString(path, entry.getValue().getJson(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }

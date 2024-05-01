@@ -28,14 +28,15 @@ public class Entity {
                     "default": "%geometry%"
                   },
                   "animations": {
-                    "default": "animation.%entity_id%.idle",
+                    "default": "animation.%entity_id%",
                     "look_at_target": "%look_at_target%"
                    
                   },
                   "scripts": {
                     "animate": [
                       "default",
-                      "look_at_target"
+                      "look_at_target",
+                      "spawn"
                     ]
                   },
                   "render_controllers": [
@@ -51,6 +52,8 @@ public class Entity {
     String json;
     boolean hasHeadAnimation = false;
 
+    String path;
+
     Properties properties = new Properties();
 
     public Entity(String modelId) {
@@ -60,7 +63,7 @@ public class Entity {
     public void modify() {
         json = TEMPLATE.replace("%entity_id%", modelId)
                 .replace("%geometry%", "geometry.modelengine_" + modelId)
-                .replace("%texture%", "textures/entity/" + modelId)
+                .replace("%texture%", "textures/entity/" + path + modelId)
                 .replace("%look_at_target%",  "animation." + modelId + ".look_at_target")
                 .replace("%material%", properties.getProperty("material", "entity_alphatest"))
                 .replace("%render_controller%", properties.getProperty("render_controller", "controller.render.default"))

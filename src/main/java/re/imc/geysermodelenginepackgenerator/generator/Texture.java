@@ -12,5 +12,8 @@ import java.nio.file.Path;
 public class Texture {
 
     String modelId;
-    Path path;
+
+    String path;
+    Path originalPath;
+
 }

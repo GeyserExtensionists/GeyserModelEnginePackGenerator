@@ -43,6 +43,14 @@ public class Animation {
     public void modify() {
         JsonObject newAnimations = new JsonObject();
         for (Map.Entry<String, JsonElement> element : json.get("animations").getAsJsonObject().entrySet()) {
+            if (element.getKey().equals("spawn")) {
+                GeneratorMain.entityMap
+                        .get(modelId).setHasSpawnAnimation(true);
+            }
+            if (element.getKey().equals("walk")) {
+                GeneratorMain.entityMap
+                        .get(modelId).setHasWalkAnimation(true);
+            }
             newAnimations.add("animation." + modelId + "." + element.getKey(), element.getValue());
         }
         json.add("animations", newAnimations);

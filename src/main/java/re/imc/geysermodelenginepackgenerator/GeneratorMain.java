@@ -101,6 +101,7 @@ public class GeneratorMain {
         File entityFolder = new File(output, "entity");
         File modelsFolder = new File(output, "models/entity");
         File texturesFolder = new File(output, "textures/entity");
+        File animationControllersFolder = new File(output, "animation_controllers");
 
 
         File manifestFile = new File(output, "manifest.json");
@@ -138,6 +139,7 @@ public class GeneratorMain {
         entityFolder.mkdirs();
         modelsFolder.mkdirs();
         texturesFolder.mkdirs();
+        animationControllersFolder.mkdirs();
 
         for (Map.Entry<String, Animation> entry : animationMap.entrySet()) {
             entry.getValue().modify();
@@ -196,6 +198,15 @@ public class GeneratorMain {
             }
             try {
                 Files.writeString(path, entry.getValue().getJson(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        File controller = new File(animationControllersFolder, "modelengine.animation_controller.json");
+        if (!controller.exists()) {
+            try {
+                Files.writeString(controller.toPath(), AnimationController.TEMPLATE);
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -9,7 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,6 +21,7 @@ public class Geometry {
 
     String modelId;
     JsonObject json;
+    List<String> bones = new ArrayList<>();
 
     String path;
     public void load(String json) {
@@ -46,7 +49,7 @@ public class Geometry {
                         name.startsWith("b_") ||
                         name.startsWith("ob_")) {
                     iterator.remove();
-                }
+                } else bones.add(name);
             }
         }
         setId("geometry.modelengine_" + modelId);

@@ -6,6 +6,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import re.imc.geysermodelenginepackgenerator.generator.Entity;
+import re.imc.geysermodelenginepackgenerator.generator.Geometry;
 import re.imc.geysermodelenginepackgenerator.util.ZipUtil;
 
 import java.io.File;
@@ -44,6 +45,13 @@ public class ExtensionMain implements Extension {
          for (String entity : GeneratorMain.entityMap.keySet()) {
              String id = "modelengine:" + entity;
              GeyserUtils.addCustomEntity(id);
+
+             Geometry geometry = GeneratorMain.geometryMap.get(entity);
+             geometry.getBones().forEach(bone -> {
+                 GeyserUtils.addProperty(id, bone, Boolean.class);
+             });
+
+             GeyserUtils.registerProperties(id);
          }
 
     }

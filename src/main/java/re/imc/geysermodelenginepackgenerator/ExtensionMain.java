@@ -36,7 +36,7 @@ public class ExtensionMain implements Extension {
 
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(generatedPackZip))) {
             // 压缩文件夹
-            ZipUtil.compressFolder(generatedPack, generatedPack.getName(), zipOutputStream);
+            ZipUtil.compressFolder(generatedPack, null, zipOutputStream);
 
         } catch (IOException e) {
             e.printStackTrace();

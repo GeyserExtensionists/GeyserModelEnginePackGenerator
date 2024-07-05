@@ -1,9 +1,6 @@
 package re.imc.geysermodelenginepackgenerator.generator;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +9,7 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 @Getter
 @Setter
@@ -43,8 +41,13 @@ public class Geometry {
         while (iterator.hasNext()) {
             JsonElement element = iterator.next();
             if (element.isJsonObject()) {
-                String name = element.getAsJsonObject().get("name").getAsString();
+                String name = element.getAsJsonObject().get("name").getAsString().toLowerCase(Locale.ROOT);
+
+                element.getAsJsonObject().remove("name");
+                element.getAsJsonObject().addProperty("name", name);
+
                 if (name.equals("hitbox") ||
+                        name.equals("mount") ||
                         name.startsWith("p_") ||
                         name.startsWith("b_") ||
                         name.startsWith("ob_")) {
@@ -54,4 +57,5 @@ public class Geometry {
         }
         setId("geometry.modelengine_" + modelId);
     }
+
 }

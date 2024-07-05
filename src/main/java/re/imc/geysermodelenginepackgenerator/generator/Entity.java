@@ -80,7 +80,7 @@ public class Entity {
                 .replace("%look_at_target%",  "animation." + modelId + ".look_at_target")
                 .replace("%walk%", walk)
                 .replace("%spawn%", spawn)
-                .replace("%material%", properties.getProperty("material", "entity_alphatest"))
+                .replace("%material%", properties.getProperty("material", "entity_alphatest_change_color"))
                 .replace("%render_controller%", properties.getProperty("render_controller", "controller.render.default"));
 
 

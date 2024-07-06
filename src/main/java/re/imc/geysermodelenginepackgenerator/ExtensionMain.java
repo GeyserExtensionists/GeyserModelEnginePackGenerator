@@ -6,6 +6,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import re.imc.geysermodelenginepackgenerator.generator.Entity;
+import re.imc.geysermodelenginepackgenerator.generator.Geometry;
 import re.imc.geysermodelenginepackgenerator.util.ZipUtil;
 
 import java.io.File;
@@ -35,7 +36,7 @@ public class ExtensionMain implements Extension {
 
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(generatedPackZip))) {
             // 压缩文件夹
-            ZipUtil.compressFolder(generatedPack, generatedPack.getName(), zipOutputStream);
+            ZipUtil.compressFolder(generatedPack, null, zipOutputStream);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,6 +45,18 @@ public class ExtensionMain implements Extension {
          for (String entity : GeneratorMain.entityMap.keySet()) {
              String id = "modelengine:" + entity;
              GeyserUtils.addCustomEntity(id);
+
+             Geometry geometry = GeneratorMain.geometryMap.get(entity);
+             geometry.getBones().forEach(bone -> {
+                 GeyserUtils.addProperty(id, entity + ":" + bone, Boolean.class);
+             });
+
+             GeyserUtils.addProperty(id, "modelengine:anim_idle", Boolean.class);
+             GeyserUtils.addProperty(id, "modelengine:anim_spawn", Boolean.class);
+             GeyserUtils.addProperty(id, "modelengine:anim_walk", Boolean.class);
+             GeyserUtils.addProperty(id, "modelengine:anim_stop", Boolean.class);
+
+             GeyserUtils.registerProperties(id);
          }
 
     }

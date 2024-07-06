@@ -15,7 +15,7 @@ public class AnimationController {
                     					],
                     					"transitions": [
                     						{
-                    							"idle": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:stone')"
+                    							"idle": "query.property('modelengine:anim_idle')"
                     						}
                     					]
                     				},
@@ -25,13 +25,13 @@ public class AnimationController {
                     					],
                     					"transitions": [
                     						{
-                    							"spawn": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:iron_block')"
+                    							"spawn": "query.property('modelengine:anim_spawn')"
                     						},
                     						{
-                    							"walk": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:redstone')"
+                    							"walk": "query.property('modelengine:anim_walk')"
                     						},
                     						{
-                    							"stop": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:air')"
+                    							"stop": "query.property('modelengine:anim_stop')"
                     						}
                     					]
                     				},
@@ -41,26 +41,26 @@ public class AnimationController {
                     					],
                     					"transitions": [
                     						{
-                    							"spawn": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:iron_block')"
+                    							"spawn": "query.property('modelengine:anim_spawn')"
                     						},
                     						{
-                    							"stop": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:air')"
+                    							"stop": "query.property('modelengine:anim_stop')"
                     						},
                     						{
-                    							"idle": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:stone')"
+                    							"idle": "query.property('modelengine:anim_idle')"
                     						}
                     					]
                     				},
                     				"stop": {
                     					"transitions": [
                     						{
-                    							"idle": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:stone')"
+                    							"idle": "query.property('modelengine:anim_idle')"
                     						},
                     						{
-                    							"spawn": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:iron_block')"
+                    							"spawn": "query.property('modelengine:anim_spawn')"
                     						},
                     						{
-                    							"walk": "q.is_item_name_any('slot.armor.head', 0, 'minecraft:redstone')"
+                    							"walk": "query.property('modelengine:anim_walk')"
                     						}
                     					]
                     				}

@@ -102,6 +102,7 @@ public class GeneratorMain {
         File modelsFolder = new File(output, "models/entity");
         File texturesFolder = new File(output, "textures/entity");
         File animationControllersFolder = new File(output, "animation_controllers");
+        File renderControllersFolder = new File(output, "render_controllers");
 
 
         File manifestFile = new File(output, "manifest.json");
@@ -140,6 +141,7 @@ public class GeneratorMain {
         modelsFolder.mkdirs();
         texturesFolder.mkdirs();
         animationControllersFolder.mkdirs();
+        renderControllersFolder.mkdirs();
 
         for (Map.Entry<String, Animation> entry : animationMap.entrySet()) {
             entry.getValue().modify();
@@ -190,14 +192,33 @@ public class GeneratorMain {
         }
 
         for (Map.Entry<String, Entity> entry : entityMap.entrySet()) {
-            entry.getValue().modify();
-            Path path = entityFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".entity.json");
-            path.toFile().getParentFile().mkdirs();
-            if (path.toFile().exists()) {
+            Entity entity = entry.getValue();
+            entity.getProperties().setProperty("render_controller", "controller.render." + entry.getKey());
+            entity.modify();
+
+            Path entityPath = entityFolder.toPath().resolve(entity.getPath() + entry.getKey() + ".entity.json");
+            entityPath.toFile().getParentFile().mkdirs();
+            if (entityPath.toFile().exists()) {
                 continue;
             }
             try {
-                Files.writeString(path, entry.getValue().getJson(), StandardCharsets.UTF_8);
+                Files.writeString(entityPath, entity.getJson(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // render controller part
+
+            String id = entity.getModelId();
+            if (!geometryMap.containsKey(id)) continue;
+            RenderController controller = new RenderController(id, geometryMap.get(id).getBones());
+
+            Path renderPath = new File(renderControllersFolder, "controller.render." + id + ".json").toPath();
+            if (renderPath.toFile().exists()) {
+                continue;
+            }
+            try {
+                Files.writeString(renderPath, controller.generate(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }

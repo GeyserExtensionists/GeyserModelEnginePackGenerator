@@ -13,8 +13,16 @@ public class ZipUtil {
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
+                    if (folderName == null) {
+                        compressFolder(file, file.getName(), zipOutputStream);
+                        continue;
+                    };
                     compressFolder(file, folderName + "/" + file.getName(), zipOutputStream);
                 } else {
+                    if (folderName == null) {
+                        addToZipFile(file.getName(), file, zipOutputStream);
+                        continue;
+                    };
                     addToZipFile(folderName + "/" + file.getName(), file, zipOutputStream);
                 }
             }

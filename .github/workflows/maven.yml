@@ -41,4 +41,4 @@ jobs:
           automatic_release_tag: latest
           prerelease: false
           files: |
-            target/*.jar
+            target/GeyserModelEnginePackGenerator*.jar

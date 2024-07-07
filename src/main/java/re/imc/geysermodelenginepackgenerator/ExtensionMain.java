@@ -64,7 +64,9 @@ public class ExtensionMain implements Extension {
 
     @Subscribe
     public void onPackLoad(GeyserLoadResourcePacksEvent event) {
-        event.resourcePacks().add(generatedPackZip);
+        if (Boolean.parseBoolean(System.getProperty("geyser-model-engine-auto-load-pack", "true"))) {
+            event.resourcePacks().add(generatedPackZip);
+        }
     }
 
 

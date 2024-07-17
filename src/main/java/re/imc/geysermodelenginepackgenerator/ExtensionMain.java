@@ -47,6 +47,9 @@ public class ExtensionMain implements Extension {
              GeyserUtils.addCustomEntity(id);
 
              Geometry geometry = GeneratorMain.geometryMap.get(entity);
+             if (geometry == null) {
+                 continue;
+             }
              geometry.getBones().forEach(bone -> {
                  GeyserUtils.addProperty(id, entity + ":" + bone, Boolean.class);
              });

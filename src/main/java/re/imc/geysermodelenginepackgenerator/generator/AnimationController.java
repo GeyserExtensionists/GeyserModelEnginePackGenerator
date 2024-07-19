@@ -15,7 +15,13 @@ public class AnimationController {
                     					],
                     					"transitions": [
                     						{
-                    							"idle": "query.property('modelengine:anim_idle')"
+                    							"idle": "query.property('modelengine:anim') == 2"
+                    						},
+                                            {
+                    							"walk": "query.property('modelengine:anim') == 3"
+                    						},
+                    						{
+                    							"stop": "query.property('modelengine:anim') == 0"
                     						}
                     					]
                     				},
@@ -25,13 +31,13 @@ public class AnimationController {
                     					],
                     					"transitions": [
                     						{
-                    							"spawn": "query.property('modelengine:anim_spawn')"
+                    							"spawn": "query.property('modelengine:anim') == 1"
                     						},
                     						{
-                    							"walk": "query.property('modelengine:anim_walk')"
+                    							"walk": "query.property('modelengine:anim') == 3"
                     						},
                     						{
-                    							"stop": "query.property('modelengine:anim_stop')"
+                    							"stop": "query.property('modelengine:anim') == 0"
                     						}
                     					]
                     				},
@@ -41,26 +47,26 @@ public class AnimationController {
                     					],
                     					"transitions": [
                     						{
-                    							"spawn": "query.property('modelengine:anim_spawn')"
+                    							"spawn": "query.property('modelengine:anim') == 1"
                     						},
                     						{
-                    							"stop": "query.property('modelengine:anim_stop')"
+                    							"stop": "query.property('modelengine:anim') == 0"
                     						},
                     						{
-                    							"idle": "query.property('modelengine:anim_idle')"
+                    							"idle": "query.property('modelengine:anim') == 2"
                     						}
                     					]
                     				},
                     				"stop": {
                     					"transitions": [
                     						{
-                    							"idle": "query.property('modelengine:anim_idle')"
+                    							"idle": "query.property('modelengine:anim') == 2"
                     						},
                     						{
-                    							"spawn": "query.property('modelengine:anim_spawn')"
+                    							"spawn": "query.property('modelengine:anim') == 1"
                     						},
                     						{
-                    							"walk": "query.property('modelengine:anim_walk')"
+                    							"walk": "query.property('modelengine:anim') == 3"
                     						}
                     					]
                     				}

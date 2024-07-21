@@ -2,7 +2,6 @@ package re.imc.geysermodelenginepackgenerator.generator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
 import java.util.List;
 
@@ -38,22 +37,19 @@ public class RenderController {
         JsonArray textures = new JsonArray();
         textures.add("Texture.default");
         controller.add("textures", textures);
-        Entity entity = GeneratorMain.entityMap
-                .get(modelId);
-        boolean enable = Boolean.parseBoolean(entity.getProperties().getProperty("enable-part-visibility", "false"));
-        if (enable) {
-            JsonArray partVisibility = new JsonArray();
-            JsonObject visibilityDefault = new JsonObject();
-            visibilityDefault.addProperty("*", true);
-            partVisibility.add(visibilityDefault);
 
-            for (String bone : bones) {
-                JsonObject visibilityItem = new JsonObject();
-                visibilityItem.addProperty(bone, "query.property('" + modelId + ":" + bone + "')");
-                partVisibility.add(visibilityItem);
-            }
-            controller.add("part_visibility", partVisibility);
+        JsonArray partVisibility = new JsonArray();
+        JsonObject visibilityDefault = new JsonObject();
+        visibilityDefault.addProperty("*", true);
+        partVisibility.add(visibilityDefault);
+
+        for (String bone : bones) {
+            JsonObject visibilityItem = new JsonObject();
+            visibilityItem.addProperty(bone, "query.property('" + modelId + ":" + bone + "')");
+            partVisibility.add(visibilityItem);
         }
+        controller.add("part_visibility", partVisibility);
+
         return root.toString();
     }
 

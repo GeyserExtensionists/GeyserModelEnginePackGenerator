@@ -54,10 +54,7 @@ public class ExtensionMain implements Extension {
                  GeyserUtils.addProperty(id, entity + ":" + bone, Boolean.class);
              });
 
-             GeyserUtils.addProperty(id, "modelengine:anim_idle", Boolean.class);
-             GeyserUtils.addProperty(id, "modelengine:anim_spawn", Boolean.class);
-             GeyserUtils.addProperty(id, "modelengine:anim_walk", Boolean.class);
-             GeyserUtils.addProperty(id, "modelengine:anim_stop", Boolean.class);
+             GeyserUtils.addProperty(id, "modelengine:anim", Integer.class);
 
              GeyserUtils.registerProperties(id);
          }

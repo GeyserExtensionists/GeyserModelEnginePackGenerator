@@ -8,6 +8,7 @@ import re.imc.geysermodelenginepackgenerator.generator.*;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -50,13 +51,6 @@ public class GeneratorMain {
                 canAdd = true;
                 textureMap.put(modelId, new Texture(modelId, currentPath, e.toPath()));
             }
-            if (e.getName().equals("config.properties")) {
-                try {
-                    entity.getProperties().load(new FileReader(e));
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
             if (e.getName().endsWith(".json")) {
                 try {
                     String json = Files.readString(e.toPath());
@@ -81,6 +75,17 @@ public class GeneratorMain {
             }
         }
         if (canAdd) {
+            File config = new File(folder, "config.properties");
+            try {
+                if (config.exists()) {
+                    entity.getProperties().load(new FileReader(config));
+                } else {
+                    entity.getProperties().setProperty("enable-part-visibility", "false");
+                    entity.getProperties().store(new FileWriter(config), "For some reasons, the part visibility render controller may cause client crash");
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
             entity.setPath(currentPath);
             entityMap.put(modelId, entity);
         }

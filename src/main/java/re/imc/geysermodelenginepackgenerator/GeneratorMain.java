@@ -48,7 +48,6 @@ public class GeneratorMain {
                 generateFromFolder(currentPath + folder.getName() + "/", e);
             }
             if (e.getName().endsWith(".png")) {
-                canAdd = true;
                 textureMap.put(modelId, new Texture(modelId, currentPath, e.toPath()));
             }
             if (e.getName().endsWith(".json")) {
@@ -68,6 +67,7 @@ public class GeneratorMain {
                         geometry.setPath(currentPath);
                         geometry.setModelId(modelId);
                         geometryMap.put(modelId, geometry);
+                        canAdd = true;
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();

@@ -103,7 +103,6 @@ public class GeneratorMain {
         }
 
         File animationsFolder = new File(output, "animations");
-        File entityFolder = new File(output, "entity");
         File modelsFolder = new File(output, "models/entity");
         File texturesFolder = new File(output, "textures/entity");
         File animationControllersFolder = new File(output, "animation_controllers");
@@ -111,33 +110,15 @@ public class GeneratorMain {
 
 
         File manifestFile = new File(output, "manifest.json");
-        boolean generateManifest = false;
-        if (!entityFolder.exists()) {
-            generateManifest = true;
-        }
-        File[] files = entityFolder.listFiles();
-        if (!manifestFile.exists() || files == null || files.length != entityMap.size()) {
-            generateManifest = true;
-        }
 
-        if (generateManifest) {
-            output.mkdirs();
-            Path path = manifestFile.toPath();
-            if (path.toFile().exists()) {
-                try {
-                    JsonObject manifest = new JsonParser().parse(Files.readString(path)).getAsJsonObject();
-                    manifest.get("header").getAsJsonObject().addProperty("uuid", UUID.randomUUID().toString());
-                    Files.writeString(path, GSON.toJson(manifest));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                try {
-                    Files.writeString(path,
-                            PackManifest.generate(), StandardCharsets.UTF_8);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        output.mkdirs();
+        Path path = manifestFile.toPath();
+        if (!path.toFile().exists()) {
+            try {
+                Files.writeString(path,
+                        PackManifest.generate(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 

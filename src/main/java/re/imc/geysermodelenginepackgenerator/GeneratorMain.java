@@ -103,6 +103,7 @@ public class GeneratorMain {
         }
 
         File animationsFolder = new File(output, "animations");
+        File entityFolder = new File(output, "entity");
         File modelsFolder = new File(output, "models/entity");
         File texturesFolder = new File(output, "textures/entity");
         File animationControllersFolder = new File(output, "animation_controllers");
@@ -111,16 +112,17 @@ public class GeneratorMain {
 
         File manifestFile = new File(output, "manifest.json");
 
+
         output.mkdirs();
-        Path path = manifestFile.toPath();
-        if (!path.toFile().exists()) {
+        if (!manifestFile.exists()) {
             try {
-                Files.writeString(path,
+                Files.writeString(manifestFile.toPath(),
                         PackManifest.generate(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
 
         animationsFolder.mkdirs();
         entityFolder.mkdirs();

@@ -18,7 +18,8 @@ public class AnimationController {
                     						{
                     							"idle": "q.variant == 1"
                     						}
-                    					]
+                    					],
+                    					"blend_transition": 0.2
                     				},
                     				"idle": {
                     					"animations": [
@@ -34,7 +35,8 @@ public class AnimationController {
                     						{
                     							"stop": "q.variant == 3"
                     						}
-                    					]
+                    					],
+                    					"blend_transition": 0.2
                     				},
                     				"walk": {
                     					"animations": [
@@ -50,7 +52,8 @@ public class AnimationController {
                     						{
                     							"idle": "q.variant == 1"
                     						}
-                    					]
+                    					],
+                    					"blend_transition": 0.2
                     				},
                     				"stop": {
                     					"transitions": [
@@ -63,7 +66,8 @@ public class AnimationController {
                     						{
                     							"walk": "q.variant == 2"
                     						}
-                    					]
+                    					],
+                    					"blend_transition": 0.2
                     				}
                     			}
                     		}

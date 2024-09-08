@@ -13,8 +13,10 @@ import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -33,24 +35,16 @@ public class Animation {
 
     String modelId;
     JsonObject json;
+    @Getter
+    Set<String> animationIds = new HashSet<>();
 
     String path;
 
-    public void load(String json) {
-        this.json = new JsonParser().parse(json).getAsJsonObject();
-    }
-
-    public void modify() {
+    public void load(String string) {
+        this.json = new JsonParser().parse(string).getAsJsonObject();
         JsonObject newAnimations = new JsonObject();
         for (Map.Entry<String, JsonElement> element : json.get("animations").getAsJsonObject().entrySet()) {
-            if (element.getKey().equals("spawn")) {
-                GeneratorMain.entityMap
-                        .get(modelId).setHasSpawnAnimation(true);
-            }
-            if (element.getKey().equals("walk")) {
-                GeneratorMain.entityMap
-                        .get(modelId).setHasWalkAnimation(true);
-            }
+            animationIds.add(element.getKey());
             newAnimations.add("animation." + modelId + "." + element.getKey(), element.getValue());
         }
         json.add("animations", newAnimations);

@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @Getter
 @Setter
@@ -17,9 +14,10 @@ import java.util.Locale;
 @NoArgsConstructor
 public class Geometry {
 
+
     String modelId;
     JsonObject json;
-    List<String> bones = new ArrayList<>();
+    Set<String> bones = new HashSet<>();
 
     String path;
     public void load(String json) {
@@ -44,11 +42,12 @@ public class Geometry {
                 String name = element.getAsJsonObject().get("name").getAsString().toLowerCase(Locale.ROOT);
 
                 element.getAsJsonObject().remove("name");
+
                 element.getAsJsonObject().addProperty("name", name);
 
                 if (name.equals("hitbox") ||
+                        name.equals("shadow") ||
                         name.equals("mount") ||
-                        name.startsWith("p_") ||
                         name.startsWith("b_") ||
                         name.startsWith("ob_")) {
                     iterator.remove();

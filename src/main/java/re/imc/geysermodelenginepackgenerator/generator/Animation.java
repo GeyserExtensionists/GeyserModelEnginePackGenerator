@@ -45,6 +45,32 @@ public class Animation {
         JsonObject newAnimations = new JsonObject();
         for (Map.Entry<String, JsonElement> element : json.get("animations").getAsJsonObject().entrySet()) {
             animationIds.add(element.getKey());
+            JsonObject animation = element.getValue().getAsJsonObject();
+            if (animation.has("loop")) {
+                if (animation.get("loop").getAsJsonPrimitive().isString()) {
+                    if (animation.get("loop").getAsString().equals("hold_on_last_frame")) {
+                        for (Map.Entry<String, JsonElement> bone : animation.get("bones").getAsJsonObject().entrySet()) {
+
+                            for (Map.Entry<String, JsonElement> anim : bone.getValue().getAsJsonObject().entrySet()) {
+                                float max = -1;
+                                JsonObject end = null;
+                                for (Map.Entry<String, JsonElement> timeline : anim.getValue().getAsJsonObject().entrySet()) {
+                                    float time = Float.parseFloat(timeline.getKey());
+                                    if (time > max) {
+                                        max = time;
+                                        if (timeline.getValue().isJsonObject()) {
+                                            end = timeline.getValue().getAsJsonObject();
+                                        }
+                                    }
+                                }
+                                if (end != null && end.get("lerp_mode").getAsString().equals("catmullrom")) {
+                                    end.addProperty("lerp_mode", "linear");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             newAnimations.add("animation." + modelId + "." + element.getKey(), element.getValue());
         }
         json.add("animations", newAnimations);

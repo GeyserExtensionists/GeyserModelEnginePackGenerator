@@ -54,6 +54,9 @@ public class Animation {
                             for (Map.Entry<String, JsonElement> anim : bone.getValue().getAsJsonObject().entrySet()) {
                                 float max = -1;
                                 JsonObject end = null;
+                                if (!anim.getValue().isJsonObject()) {
+                                    continue;
+                                }
                                 for (Map.Entry<String, JsonElement> timeline : anim.getValue().getAsJsonObject().entrySet()) {
                                     float time = Float.parseFloat(timeline.getKey());
                                     if (time > max) {

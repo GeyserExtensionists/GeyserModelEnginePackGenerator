@@ -2,7 +2,6 @@ package re.imc.geysermodelenginepackgenerator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import re.imc.geysermodelenginepackgenerator.generator.*;
 
@@ -16,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class GeneratorMain {
     public static final Map<String, Entity> entityMap = new HashMap<>();
@@ -56,9 +54,11 @@ public class GeneratorMain {
                     if (isAnimationFile(json)) {
                         Animation animation = new Animation();
                         animation.setPath(currentPath);
-                        animation.load(json);
                         animation.setModelId(modelId);
+
+                        animation.load(json);
                         animationMap.put(modelId, animation);
+                        entity.setAnimation(animation);
                     }
 
                     if (isGeometryFile(json)) {
@@ -67,6 +67,7 @@ public class GeneratorMain {
                         geometry.setPath(currentPath);
                         geometry.setModelId(modelId);
                         geometryMap.put(modelId, geometry);
+                        entity.setGeometry(geometry);
                         canAdd = true;
                     }
                 } catch (IOException ex) {
@@ -78,10 +79,10 @@ public class GeneratorMain {
             File config = new File(folder, "config.properties");
             try {
                 if (config.exists()) {
-                    entity.getProperties().load(new FileReader(config));
+                    entity.getConfig().load(new FileReader(config));
                 } else {
-                    entity.getProperties().setProperty("enable-part-visibility", "false");
-                    entity.getProperties().store(new FileWriter(config), "For some reasons, the part visibility render controller may cause client crash");
+                    entity.getConfig().setProperty("enable-part-visibility", "false");
+                    entity.getConfig().store(new FileWriter(config), "For some reasons, the part visibility render controller may cause client crash");
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -132,19 +133,24 @@ public class GeneratorMain {
         renderControllersFolder.mkdirs();
 
         for (Map.Entry<String, Animation> entry : animationMap.entrySet()) {
-            entry.getValue().modify();
             Geometry geo = geometryMap.get(entry.getKey());
             if (geo != null) {
                 entry.getValue().addHeadBind(geo);
             }
             Path path = animationsFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".animation.json");
+            Path pathController = animationControllersFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".animation_controllers.json");
+
             path.toFile().getParentFile().mkdirs();
 
             if (path.toFile().exists()) {
                 continue;
             }
+
+            AnimationController controller = new AnimationController();
+            controller.load(entry.getValue());
             try {
-                Files.writeString(path, GSON.toJson(entry.getValue().getJson()), StandardCharsets.UTF_8);
+                Files.writeString(path, entry.getValue().getJson().toString(), StandardCharsets.UTF_8);
+                Files.writeString(pathController, controller.getJson().toString(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -159,7 +165,7 @@ public class GeneratorMain {
                 continue;
             }
             try {
-                Files.writeString(path, GSON.toJson(entry.getValue().getJson()), StandardCharsets.UTF_8);
+                Files.writeString(path, entry.getValue().getJson().toString(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -181,7 +187,7 @@ public class GeneratorMain {
 
         for (Map.Entry<String, Entity> entry : entityMap.entrySet()) {
             Entity entity = entry.getValue();
-            entity.getProperties().setProperty("render_controller", "controller.render." + entry.getKey());
+            entity.getConfig().setProperty("render_controller", "controller.render." + entry.getKey());
             entity.modify();
 
             Path entityPath = entityFolder.toPath().resolve(entity.getPath() + entry.getKey() + ".entity.json");
@@ -190,7 +196,7 @@ public class GeneratorMain {
                 continue;
             }
             try {
-                Files.writeString(entityPath, entity.getJson(), StandardCharsets.UTF_8);
+                Files.writeString(entityPath, entity.getJson().toString(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -200,7 +206,7 @@ public class GeneratorMain {
             String id = entity.getModelId();
             if (!geometryMap.containsKey(id)) continue;
             RenderController controller = new RenderController(id, geometryMap.get(id).getBones());
-
+            entity.setRenderController(controller);
             Path renderPath = new File(renderControllersFolder, "controller.render." + id + ".json").toPath();
             if (renderPath.toFile().exists()) {
                 continue;
@@ -212,6 +218,7 @@ public class GeneratorMain {
             }
         }
 
+        /*
         File controller = new File(animationControllersFolder, "modelengine.animation_controller.json");
         if (!controller.exists()) {
             try {
@@ -221,6 +228,7 @@ public class GeneratorMain {
             }
         }
 
+         */
     }
 
     private static boolean isGeometryFile(String json) {

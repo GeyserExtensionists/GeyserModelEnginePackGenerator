@@ -13,8 +13,10 @@ import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -33,23 +35,44 @@ public class Animation {
 
     String modelId;
     JsonObject json;
+    @Getter
+    Set<String> animationIds = new HashSet<>();
 
     String path;
 
-    public void load(String json) {
-        this.json = new JsonParser().parse(json).getAsJsonObject();
-    }
-
-    public void modify() {
+    public void load(String string) {
+        this.json = new JsonParser().parse(string).getAsJsonObject();
         JsonObject newAnimations = new JsonObject();
         for (Map.Entry<String, JsonElement> element : json.get("animations").getAsJsonObject().entrySet()) {
-            if (element.getKey().equals("spawn")) {
-                GeneratorMain.entityMap
-                        .get(modelId).setHasSpawnAnimation(true);
-            }
-            if (element.getKey().equals("walk")) {
-                GeneratorMain.entityMap
-                        .get(modelId).setHasWalkAnimation(true);
+            animationIds.add(element.getKey());
+            JsonObject animation = element.getValue().getAsJsonObject();
+            if (animation.has("loop")) {
+                if (animation.get("loop").getAsJsonPrimitive().isString()) {
+                    if (animation.get("loop").getAsString().equals("hold_on_last_frame")) {
+                        for (Map.Entry<String, JsonElement> bone : animation.get("bones").getAsJsonObject().entrySet()) {
+
+                            for (Map.Entry<String, JsonElement> anim : bone.getValue().getAsJsonObject().entrySet()) {
+                                float max = -1;
+                                JsonObject end = null;
+                                if (!anim.getValue().isJsonObject()) {
+                                    continue;
+                                }
+                                for (Map.Entry<String, JsonElement> timeline : anim.getValue().getAsJsonObject().entrySet()) {
+                                    float time = Float.parseFloat(timeline.getKey());
+                                    if (time > max) {
+                                        max = time;
+                                        if (timeline.getValue().isJsonObject()) {
+                                            end = timeline.getValue().getAsJsonObject();
+                                        }
+                                    }
+                                }
+                                if (end != null && end.get("lerp_mode").getAsString().equals("catmullrom")) {
+                                    end.addProperty("lerp_mode", "linear");
+                                }
+                            }
+                        }
+                    }
+                }
             }
             newAnimations.add("animation." + modelId + "." + element.getKey(), element.getValue());
         }

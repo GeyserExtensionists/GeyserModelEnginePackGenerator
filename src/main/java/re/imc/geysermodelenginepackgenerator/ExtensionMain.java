@@ -35,28 +35,14 @@ public class ExtensionMain implements Extension {
         generatedPackZip = dataFolder().resolve("generated_pack.zip");
 
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(generatedPackZip))) {
-            // 压缩文件夹
             ZipUtil.compressFolder(generatedPack, null, zipOutputStream);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-         for (String entity : GeneratorMain.entityMap.keySet()) {
-             String id = "modelengine:" + entity;
-             GeyserUtils.addCustomEntity(id);
-
-             Geometry geometry = GeneratorMain.geometryMap.get(entity);
-             if (geometry == null) {
-                 continue;
-             }
-             geometry.getBones().forEach(bone -> {
-                 GeyserUtils.addProperty(id, entity + ":" + bone, Boolean.class);
-             });
-
-             GeyserUtils.addProperty(id, "modelengine:anim", Integer.class);
-
-             GeyserUtils.registerProperties(id);
+         for (Entity entity : GeneratorMain.entityMap.values()) {
+             entity.register();
          }
 
     }

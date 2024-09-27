@@ -4,14 +4,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
-import java.util.List;
+import java.util.*;
 
 public class RenderController {
 
+    public static final Set<String> NEED_REMOVE_WHEN_SORT = Set.of("pbody_", "plarm_", "prarm_", "plleg_", "prleg_", "phead_", "p_");
     String modelId;
-    List<String> bones;
+    Set<String> bones;
 
-    public RenderController(String modelId, List<String> bones) {
+    public RenderController(String modelId, Set<String> bones) {
         this.modelId = modelId;
         this.bones = bones;
     }
@@ -40,21 +41,37 @@ public class RenderController {
         controller.add("textures", textures);
         Entity entity = GeneratorMain.entityMap
                 .get(modelId);
-        boolean enable = Boolean.parseBoolean(entity.getProperties().getProperty("enable-part-visibility", "false"));
+        // boolean enable = Boolean.parseBoolean(entity.getConfig().getProperty("enable-part-visibility", "true"));
 
-        if (enable) {
-            JsonArray partVisibility = new JsonArray();
-            JsonObject visibilityDefault = new JsonObject();
-            visibilityDefault.addProperty("*", true);
-            partVisibility.add(visibilityDefault);
-
-            for (String bone : bones) {
-                JsonObject visibilityItem = new JsonObject();
-                visibilityItem.addProperty(bone, "query.property('" + modelId + ":" + bone + "')");
-                partVisibility.add(visibilityItem);
+        // if (enable) {
+        JsonArray partVisibility = new JsonArray();
+        JsonObject visibilityDefault = new JsonObject();
+        visibilityDefault.addProperty("*", true);
+        partVisibility.add(visibilityDefault);
+        int i = 0;
+        List<String> sorted = new ArrayList<>(bones);
+        Map<String, String> originalId = new HashMap<>();
+        ListIterator<String> iterator = sorted.listIterator();
+        while (iterator.hasNext()) {
+            String s = iterator.next();
+            String o = s;
+            for (String r : NEED_REMOVE_WHEN_SORT) {
+                s = s.replace(r, "");
             }
-            controller.add("part_visibility", partVisibility);
+            iterator.set(s);
+            originalId.put(s, o);
         }
+        Collections.sort(sorted);
+        for (String bone : sorted) {
+            bone = originalId.get(bone);
+            JsonObject visibilityItem = new JsonObject();
+            int n = (int) Math.pow(2, (i % 24));
+            visibilityItem.addProperty(bone, "math.mod(math.floor(query.property('modelengine:bone" + i / 24 + "') / " + n + "), 2) == 1");
+            partVisibility.add(visibilityItem);
+            i++;
+        }
+        controller.add("part_visibility", partVisibility);
+        //}
         return root.toString();
     }
 

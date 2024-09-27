@@ -1,11 +1,18 @@
 package re.imc.geysermodelenginepackgenerator.generator;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import me.zimzaza4.geyserutils.geyser.GeyserUtils;
+import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -28,16 +35,10 @@ public class Entity {
                     "default": "%geometry%"
                   },
                   "animations": {
-                  
-                    "idle": "animation.%entity_id%.idle",
-                    "spawn": "animation.%entity_id%.%spawn%",
-                    "walk": "animation.%entity_id%.%walk%",
-                    "look_at_target": "%look_at_target%",
-                    "modelengine_controller": "controller.animation.modelengine"
+                    "look_at_target": "%look_at_target%"
                   },
                   "scripts": {
                     "animate": [
-                      "modelengine_controller",
                       "look_at_target"
                     ]
                   },
@@ -51,13 +52,25 @@ public class Entity {
 
 
     String modelId;
-    String json;
+    JsonObject json;
     boolean hasHeadAnimation = false;
-    boolean hasWalkAnimation = false;
-    boolean hasSpawnAnimation = false;
+    @Setter
+    @Getter
+    Animation animation;
+
+    @Setter
+    @Getter
+    Geometry geometry;
+
+    @Setter
+    @Getter
+    RenderController renderController;
+
     String path;
 
-    Properties properties = new Properties();
+    Properties config = new Properties();
+
+
 
     public Entity(String modelId) {
         this.modelId = modelId;
@@ -65,27 +78,43 @@ public class Entity {
 
     public void modify() {
 
-        String walk;
-        String spawn;
-        walk = spawn = "idle";
-        if (hasWalkAnimation) {
-            walk = "walk";
-        }
-        if (hasSpawnAnimation) {
-            spawn = "spawn";
-        }
-        json = TEMPLATE.replace("%entity_id%", modelId)
+        json = new JsonParser().parse(TEMPLATE.replace("%entity_id%", modelId)
                 .replace("%geometry%", "geometry.modelengine_" + modelId)
                 .replace("%texture%", "textures/entity/" + path + modelId)
                 .replace("%look_at_target%",  "animation." + modelId + ".look_at_target")
-                .replace("%walk%", walk)
-                .replace("%spawn%", spawn)
-                .replace("%material%", properties.getProperty("material", "entity_alphatest_change_color"))
-                .replace("%render_controller%", properties.getProperty("render_controller", "controller.render.default"));
+                .replace("%material%", config.getProperty("material", "entity_alphatest_change_color"))
+                .replace("%render_controller%", config.getProperty("render_controller", "controller.render.default"))).getAsJsonObject();
 
+        JsonObject description = json.get("minecraft:client_entity").getAsJsonObject().get("description").getAsJsonObject();
+        JsonObject jsonAnimations = description.get("animations").getAsJsonObject();
+        JsonArray animate = description.get("scripts").getAsJsonObject().get("animate").getAsJsonArray();
 
+        if (animation != null) {
+            for (String animation : animation.animationIds) {
+                String controller = "controller.animation." + modelId + "." + animation;
+                animate.add(animation + "_control");
+                jsonAnimations.addProperty(animation, "animation." + modelId + "." + animation);
+                jsonAnimations.addProperty(animation + "_control", controller);
+            }
+        }
     }
 
+    public void register() {
 
+        String id = "modelengine:" + modelId;
+        GeyserUtils.addCustomEntity(id);
+        if (geometry == null) {
+            return;
+        }
+        for (int i = 0; i < Math.ceil(geometry.getBones().size() / 24f); i++) {
+            GeyserUtils.addProperty(id, "modelengine:bone" + i, Integer.class);
+        }
 
+        if (animation != null) {
+            for (int i = 0; i < Math.ceil(animation.animationIds.size() / 24f); i++) {
+                GeyserUtils.addProperty(id, "modelengine:anim" + i, Integer.class);
+            }
+        }
+        GeyserUtils.registerProperties(id);
+    }
 }

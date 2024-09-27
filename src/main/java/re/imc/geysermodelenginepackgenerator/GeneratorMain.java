@@ -140,6 +140,7 @@ public class GeneratorMain {
             Path path = animationsFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".animation.json");
             Path pathController = animationControllersFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".animation_controllers.json");
 
+            pathController.toFile().getParentFile().mkdirs();
             path.toFile().getParentFile().mkdirs();
 
             if (path.toFile().exists()) {

@@ -46,6 +46,16 @@ public class Animation {
         for (Map.Entry<String, JsonElement> element : json.get("animations").getAsJsonObject().entrySet()) {
             animationIds.add(element.getKey());
             JsonObject animation = element.getValue().getAsJsonObject();
+
+            if (animation.has("override_previous_animation")) {
+                if (animation.get("override_previous_animation").getAsBoolean()) {
+                    if (!animation.has("loop")) {
+                        animation.addProperty("loop", "hold_on_last_frame");
+                        // play once but override must use this to avoid strange anim
+                    }
+                }
+            }
+
             if (animation.has("loop")) {
                 if (animation.get("loop").getAsJsonPrimitive().isString()) {
                     if (animation.get("loop").getAsString().equals("hold_on_last_frame")) {
@@ -74,6 +84,7 @@ public class Animation {
                     }
                 }
             }
+
             newAnimations.add("animation." + modelId + "." + element.getKey(), element.getValue());
         }
         json.add("animations", newAnimations);

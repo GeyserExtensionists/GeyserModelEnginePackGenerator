@@ -109,7 +109,7 @@ public class GeneratorMain {
         File texturesFolder = new File(output, "textures/entity");
         File animationControllersFolder = new File(output, "animation_controllers");
         File renderControllersFolder = new File(output, "render_controllers");
-
+        File materialsFolder = new File(output, "materials");
 
         File manifestFile = new File(output, "manifest.json");
 
@@ -131,7 +131,10 @@ public class GeneratorMain {
         texturesFolder.mkdirs();
         animationControllersFolder.mkdirs();
         renderControllersFolder.mkdirs();
+        materialsFolder.mkdirs();
 
+        File materialFile = new File(materialsFolder, "entity.material");
+        
         for (Map.Entry<String, Animation> entry : animationMap.entrySet()) {
             Geometry geo = geometryMap.get(entry.getKey());
             if (geo != null) {

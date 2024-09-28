@@ -23,8 +23,8 @@ public class PackManifest {
             }
             """;
 
-    public static String generate() {
+   public static String generate() {
         return TEMPLATE.replace("%uuid-1%", UUID.randomUUID().toString())
-                .replace("%uuid-2%", UUID.randomUUID().toString());
+                 .replace("%uuid-2%", UUID.randomUUID().toString());
     }
 }

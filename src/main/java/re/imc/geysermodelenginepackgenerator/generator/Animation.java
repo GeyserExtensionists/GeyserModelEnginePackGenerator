@@ -59,6 +59,9 @@ public class Animation {
             if (animation.has("loop")) {
                 if (animation.get("loop").getAsJsonPrimitive().isString()) {
                     if (animation.get("loop").getAsString().equals("hold_on_last_frame")) {
+                        if (!animation.has("bones")) {
+                            continue;
+                        }
                         for (Map.Entry<String, JsonElement> bone : animation.get("bones").getAsJsonObject().entrySet()) {
 
                             for (Map.Entry<String, JsonElement> anim : bone.getValue().getAsJsonObject().entrySet()) {
@@ -67,15 +70,17 @@ public class Animation {
                                 if (!anim.getValue().isJsonObject()) {
                                     continue;
                                 }
-                                for (Map.Entry<String, JsonElement> timeline : anim.getValue().getAsJsonObject().entrySet()) {
-                                    float time = Float.parseFloat(timeline.getKey());
-                                    if (time > max) {
-                                        max = time;
-                                        if (timeline.getValue().isJsonObject()) {
-                                            end = timeline.getValue().getAsJsonObject();
+                                try {
+                                    for (Map.Entry<String, JsonElement> timeline : anim.getValue().getAsJsonObject().entrySet()) {
+                                        float time = Float.parseFloat(timeline.getKey());
+                                        if (time > max) {
+                                            max = time;
+                                            if (timeline.getValue().isJsonObject()) {
+                                                end = timeline.getValue().getAsJsonObject();
+                                            }
                                         }
                                     }
-                                }
+                                } catch (Throwable t) {}
                                 if (end != null && end.get("lerp_mode").getAsString().equals("catmullrom")) {
                                     end.addProperty("lerp_mode", "linear");
                                 }

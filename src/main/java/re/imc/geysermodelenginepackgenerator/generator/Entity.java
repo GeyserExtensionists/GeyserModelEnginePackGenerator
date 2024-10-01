@@ -81,7 +81,7 @@ public class Entity {
         json = new JsonParser().parse(TEMPLATE.replace("%entity_id%", modelId)
                 .replace("%geometry%", "geometry.modelengine_" + modelId)
                 .replace("%texture%", "textures/entity/" + path + modelId)
-                .replace("%look_at_target%",  "animation." + modelId + ".look_at_target")
+                .replace("%look_at_target%",  Boolean.parseBoolean(config.getProperty("head-rotation", "true".toLowerCase())) ? "animation." + modelId + ".look_at_target" : "animation.none")
                 .replace("%material%", config.getProperty("material", "entity_alphatest_change_color"))
                 .replace("%render_controller%", config.getProperty("render_controller", "controller.render.default"))).getAsJsonObject();
 

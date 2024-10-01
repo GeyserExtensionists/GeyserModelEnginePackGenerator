@@ -54,6 +54,7 @@ public class Animation {
                         // play once but override must use this to avoid strange anim
                     }
                 }
+                animation.remove("override_previous_animation");
             }
 
             if (animation.has("loop")) {
@@ -81,7 +82,7 @@ public class Animation {
                                         }
                                     }
                                 } catch (Throwable t) {}
-                                if (end != null && end.get("lerp_mode").getAsString().equals("catmullrom")) {
+                                if (end != null && end.has("lerp_mode") && end.get("lerp_mode").getAsString().equals("catmullrom")) {
                                     end.addProperty("lerp_mode", "linear");
                                 }
                             }

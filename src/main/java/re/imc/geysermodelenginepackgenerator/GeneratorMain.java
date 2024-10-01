@@ -21,7 +21,7 @@ public class GeneratorMain {
     public static final  Map<String, Animation> animationMap = new HashMap<>();
     public static final  Map<String, Geometry> geometryMap = new HashMap<>();
     public static final  Map<String, Texture> textureMap = new HashMap<>();
-    public static final Gson GSON = new GsonBuilder()
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting()
             .create();
 
 
@@ -81,8 +81,10 @@ public class GeneratorMain {
                 if (config.exists()) {
                     entity.getConfig().load(new FileReader(config));
                 } else {
-                    entity.getConfig().setProperty("enable-part-visibility", "false");
-                    entity.getConfig().store(new FileWriter(config), "For some reasons, the part visibility render controller may cause client crash");
+                    entity.getConfig().setProperty("head-rotation", "true");
+                    entity.getConfig().setProperty("material", "entity_alphatest_change_color");
+                    entity.getConfig().setProperty("blend-transition", "true");
+                    entity.getConfig().store(new FileWriter(config), "");
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -136,6 +138,7 @@ public class GeneratorMain {
         File materialFile = new File(materialsFolder, "entity.material");
         
         for (Map.Entry<String, Animation> entry : animationMap.entrySet()) {
+            Entity entity = entityMap.get(entry.getKey());
             Geometry geo = geometryMap.get(entry.getKey());
             if (geo != null) {
                 entry.getValue().addHeadBind(geo);
@@ -151,9 +154,10 @@ public class GeneratorMain {
             }
 
             AnimationController controller = new AnimationController();
-            controller.load(entry.getValue());
+            controller.load(entry.getValue(), entity);
+
             try {
-                Files.writeString(path, entry.getValue().getJson().toString(), StandardCharsets.UTF_8);
+                Files.writeString(path, GSON.toJson(entry.getValue().getJson()), StandardCharsets.UTF_8);
                 Files.writeString(pathController, controller.getJson().toString(), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();

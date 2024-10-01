@@ -1,12 +1,15 @@
 package re.imc.geysermodelenginepackgenerator.generator;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class AnimationController {
 
@@ -28,82 +31,14 @@ public class AnimationController {
                              }
                         }
                      }""";
-    public static final String TEMPLATE =
-            """
-                    {
-                    	"format_version": "1.10.0",
-                    	"animation_controllers": {
-                    		"controller.animation.modelengine": {
-                    			"initial_state": "spawn",
-                    			"states": {
-                    				"spawn": {
-                    					"animations": [
-                    						"spawn"
-                    					],
-                    					"transitions": [
-                    						{
-                    							"idle": "q.variant == 1"
-                    						}
-                    					],
-                    					"blend_transition": 0.2
-                    				},
-                    				"idle": {
-                    					"animations": [
-                    						"idle"
-                    					],
-                    					"transitions": [
-                    						{
-                    							"spawn": "q.variant == 0"
-                    						},
-                    						{
-                    							"walk": "q.variant == 2"
-                    						},
-                    						{
-                    							"stop": "q.variant == 3"
-                    						}
-                    					],
-                    					"blend_transition": 0.2
-                    				},
-                    				"walk": {
-                    					"animations": [
-                    						"walk"
-                    					],
-                    					"transitions": [
-                    						{
-                    							"spawn": "q.variant == 0"
-                    						},
-                    						{
-                    							"stop": "q.variant == 3"
-                    						},
-                    						{
-                    							"idle": "q.variant == 1"
-                    						}
-                    					],
-                    					"blend_transition": 0.2
-                    				},
-                    				"stop": {
-                    					"transitions": [
-                    						{
-                    							"idle": "q.variant == 1"
-                    						},
-                    						{
-                    							"spawn": "q.variant == 0"
-                    						},
-                    						{
-                    							"walk": "q.variant == 2"
-                    						}
-                    					],
-                    					"blend_transition": 0.2
-                    				}
-                    			}
-                    		}
-                    	}
-                    }""";
 
     @Getter
     JsonObject json;
+    @Setter
+    @Getter
+    Entity entity;
 
-    public void load(Animation animation) {
+    public void load(Animation animation, Entity entity) {
         JsonObject root = new JsonObject();
         json = root;
         root.addProperty("format_version", "1.10.0");
@@ -121,6 +56,14 @@ public class AnimationController {
             JsonObject controller = new JsonParser().parse(CONTROLLER_TEMPLATE.replace("%anim%", id).replace("%query%", "math.mod(math.floor(query.property('modelengine:anim" + i / 24 + "') / " + n + "), 2)")).getAsJsonObject();
             animationControllers.add("controller.animation." + animation.modelId + "." + id, controller);
             i++;
+            if (entity != null) {
+                boolean blend = Boolean.parseBoolean(entity.getConfig().getProperty("blend-transition", "true"));
+                if (!blend) {
+                    for (Map.Entry<String, JsonElement> states : controller.get("states").getAsJsonObject().entrySet()) {
+                        states.getValue().getAsJsonObject().remove("blend_transition");
+                    }
+                }
+            }
         }
     }
 

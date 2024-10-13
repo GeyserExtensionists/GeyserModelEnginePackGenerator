@@ -16,4 +16,5 @@ public class Texture {
     String path;
     Set<String> bindingBones;
     Path originalPath;
+
 }

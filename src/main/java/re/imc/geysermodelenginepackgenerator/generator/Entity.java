@@ -10,10 +10,7 @@ import lombok.Setter;
 import me.zimzaza4.geyserutils.geyser.GeyserUtils;
 import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -33,6 +30,7 @@ public class Entity {
                   "textures": {
                   },
                   "geometry": {
+                    "default": "%geometry%"
                   },
                   "animations": {
                     "look_at_target": "%look_at_target%"
@@ -43,7 +41,6 @@ public class Entity {
                     ]
                   },
                   "render_controllers": [
-                    "%render_controller%"
                   ]
                 }
               }
@@ -58,7 +55,7 @@ public class Entity {
     Geometry geometry;
     RenderController renderController;
     String path;
-    Map<String, Texture> textureMap;
+    Map<String, Texture> textureMap = new HashMap<>();
     TextureConfig textureConfig;
 
 
@@ -76,17 +73,17 @@ public class Entity {
                 .replace("%geometry%", "geometry.modelengine_" + modelId)
                 .replace("%texture%", "textures/entity/" + path + modelId)
                 .replace("%look_at_target%",  Boolean.parseBoolean(config.getProperty("head-rotation", "true".toLowerCase())) ? "animation." + modelId + ".look_at_target" : "animation.none")
-                .replace("%material%", config.getProperty("material", "entity_alphatest_change_color"))
-                .replace("%render_controller%", config.getProperty("render_controller", "controller.render.default"))).getAsJsonObject();
+                .replace("%material%", config.getProperty("material", "entity_alphatest_change_color"))).getAsJsonObject();
 
         JsonObject description = json.get("minecraft:client_entity").getAsJsonObject().get("description").getAsJsonObject();
         JsonObject jsonAnimations = description.get("animations").getAsJsonObject();
         JsonObject jsonTextures = description.get("textures").getAsJsonObject();
-        JsonObject jsonGeometry = description.get("geometry").getAsJsonObject();
+        JsonArray jsonRenderControllers = description.get("render_controllers").getAsJsonArray();
+
 
         for (String name : textureMap.keySet()) {
             jsonTextures.addProperty(name,"textures/entity/" + path + modelId + "/" + name);
-            jsonGeometry.addProperty(name, "geometry.modelengine_" + modelId);
+            jsonRenderControllers.add("controller.render." + modelId + "_" + name);
         }
 
         JsonArray animate = description.get("scripts").getAsJsonObject().get("animate").getAsJsonArray();

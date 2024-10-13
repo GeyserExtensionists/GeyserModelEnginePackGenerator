@@ -43,6 +43,14 @@ public class GeneratorMain {
 
         Entity entity = new Entity(modelId);
         TextureConfig textureConfig = new TextureConfig();
+        File textureConfigFile = new File(folder, "texture_config.json");
+        if (textureConfigFile.exists()) {
+            try {
+                textureConfig = GSON.fromJson(Files.readString(textureConfigFile.toPath()), TextureConfig.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         boolean canAdd = false;
         for (File e : folder.listFiles()) {
             if (e.isDirectory()) {
@@ -52,13 +60,16 @@ public class GeneratorMain {
                 String textureName = e.getName().replace(".png", "");
                 Set<String> bindingBones = new HashSet<>();
                 bindingBones.add("*");
-                if (!textureConfig.getBingingBones().containsKey(textureName)) {
+                if (textureConfig.getBingingBones().containsKey(textureName)) {
                     bindingBones = textureConfig.getBingingBones().get(textureName);
                 }
-                textureMap.computeIfAbsent(modelId, s -> new HashMap<>()).put(textureName, new Texture(modelId, currentPath, bindingBones, e.toPath()));
-                if (!textureConfig.getBingingBones().isEmpty()) {
+                Map<String, Texture> map = textureMap.computeIfAbsent(modelId, s -> new HashMap<>());
+                map.put(textureName, new Texture(modelId, currentPath, bindingBones, e.toPath()));
+                entity.setTextureMap(map);
+                if (textureConfig.getBingingBones().isEmpty()) {
                     textureConfig.getBingingBones().put(textureName, Set.of("*"));
                 }
+
             }
             if (e.getName().endsWith(".json")) {
                 try {
@@ -101,6 +112,13 @@ public class GeneratorMain {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
+            try {
+                Files.writeString(textureConfigFile.toPath(), GSON.toJson(textureConfig));
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+            entity.setTextureConfig(textureConfig);
             entity.setPath(currentPath);
             entityMap.put(modelId, entity);
         }
@@ -200,17 +218,20 @@ public class GeneratorMain {
             }
         }
 
-        for (Map.Entry<String, Map<String, Texture>> entry : textureMap.entrySet()) {
-            Path path = texturesFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".png");
-            path.toFile().getParentFile().mkdirs();
+        for (Map.Entry<String, Map<String, Texture>> textures : textureMap.entrySet()) {
 
-            if (path.toFile().exists()) {
-                continue;
-            }
-            try {
-                Files.copy(entry.getValue().getOriginalPath(), path, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                e.printStackTrace();
+            for (Map.Entry<String, Texture> entry : textures.getValue().entrySet()) {
+                Path path = texturesFolder.toPath().resolve(entry.getValue().getPath() + textures.getKey() + "/" + entry.getKey() + ".png");
+                path.toFile().getParentFile().mkdirs();
+
+                if (path.toFile().exists()) {
+                    continue;
+                }
+                try {
+                    Files.copy(entry.getValue().getOriginalPath(), path, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

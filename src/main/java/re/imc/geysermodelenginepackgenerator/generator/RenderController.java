@@ -2,18 +2,22 @@ package re.imc.geysermodelenginepackgenerator.generator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.internal.bind.TypeAdapters;
 import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.*;
 
 public class RenderController {
 
-    public static final Set<String> NEED_REMOVE_WHEN_SORT = Set.of("pbody_", "plarm_", "prarm_", "plleg_", "prleg_", "phead_", "p_");
+    public static final Set<String> NEED_REMOVE_WHEN_SORT = Set.of("pbody_", "plarm_", "prarm_", "plleg_", "prleg_", "phead_", "p_", "uv_");
     String modelId;
-    Set<String> bones;
+    Map<String, Bone> bones;
     Entity entity;
 
-    public RenderController(String modelId, Set<String> bones, Entity entity) {
+    public RenderController(String modelId, Map<String, Bone> bones, Entity entity) {
         this.modelId = modelId;
         this.bones = bones;
         this.entity = entity;
@@ -27,53 +31,97 @@ public class RenderController {
         JsonObject renderControllers = new JsonObject();
         root.add("render_controllers", renderControllers);
 
-        JsonObject controller = new JsonObject();
-        renderControllers.add("controller.render." + modelId, controller);
+        Set<Bone> processedBones = new HashSet<>();
+        for (String key : entity.textureMap.keySet()) {
 
-        controller.addProperty("geometry", "Geometry.default");
+            Texture texture = entity.textureMap.get(key);
+            Set<String> uvBonesId = entity.getTextureConfig().bingingBones.get(key);
+            TextureConfig.AnimTextureOptions anim = entity.getTextureConfig().getAnimTextures().get(key);
 
-        JsonArray materials = new JsonArray();
-        JsonObject materialItem = new JsonObject();
-        materialItem.addProperty("*", "Material.default");
-        materials.add(materialItem);
-        controller.add("materials", materials);
+            JsonObject controller = new JsonObject();
 
-        JsonArray textures = new JsonArray();
-        textures.add("Texture.default");
-        controller.add("textures", textures);
-        Entity entity = GeneratorMain.entityMap
-                .get(modelId);
-        // boolean enable = Boolean.parseBoolean(entity.getConfig().getProperty("enable-part-visibility", "true"));
+            renderControllers.add("controller.render." + modelId + "_" + key, controller);
 
-        // if (enable) {
-        JsonArray partVisibility = new JsonArray();
-        JsonObject visibilityDefault = new JsonObject();
-        visibilityDefault.addProperty("*", true);
-        partVisibility.add(visibilityDefault);
-        int i = 0;
-        List<String> sorted = new ArrayList<>(bones);
-        Map<String, String> originalId = new HashMap<>();
-        ListIterator<String> iterator = sorted.listIterator();
-        while (iterator.hasNext()) {
-            String s = iterator.next();
-            String o = s;
-            for (String r : NEED_REMOVE_WHEN_SORT) {
-                s = s.replace(r, "");
+            controller.addProperty("geometry", "Geometry.default");
+
+            JsonArray materials = new JsonArray();
+            JsonObject materialItem = new JsonObject();
+            if (anim != null) {
+                materialItem.addProperty("*", "Material.anim");
+                JsonObject uvAnim = new JsonObject();
+                controller.add("uv_anim", uvAnim);
+                JsonArray offset = new JsonArray();
+                offset.add(0.0);
+                offset.add("math.mod(math.floor(q.life_time * " + anim.fps + ")," + anim.frames + ") / " + anim.frames);
+                uvAnim.add("offset", offset);
+                JsonArray scale = new JsonArray();
+                scale.add(1.0);
+                scale.add("1 / " + anim.frames);
+                uvAnim.add("scale", scale);
+            } else {
+                materialItem.addProperty("*", "Material.default");
             }
-            iterator.set(s);
-            originalId.put(s, o);
+            materials.add(materialItem);
+            controller.add("materials", materials);
+
+            JsonArray textures = new JsonArray();
+            textures.add("Texture." + key);
+            controller.add("textures", textures);
+
+            // if (enable) {
+            JsonArray partVisibility = new JsonArray();
+            JsonObject visibilityDefault = new JsonObject();
+            visibilityDefault.addProperty("*", false);
+            partVisibility.add(visibilityDefault);
+            int i = 0;
+            List<String> sorted = new ArrayList<>(bones.keySet());
+            Map<String, String> originalId = new HashMap<>();
+            ListIterator<String> iterator = sorted.listIterator();
+            while (iterator.hasNext()) {
+                String s = iterator.next();
+                String o = s;
+                for (String r : NEED_REMOVE_WHEN_SORT) {
+                    s = s.replace(r, "");
+                }
+                iterator.set(s);
+                originalId.put(s, o);
+            }
+            Collections.sort(sorted);
+
+            Set<String> uvAllBones = new HashSet<>();
+            for (String uvBone : uvBonesId) {
+                if (uvBone.equals("*")) {
+                    uvAllBones.addAll(bones.keySet());
+                }
+                if (!bones.containsKey(uvBone)) {
+                    continue;
+                }
+                for (Bone child : bones.get(uvBone).allChildren) {
+                    uvAllBones.add(child.getName());
+                }
+                uvAllBones.add(uvBone);
+            }
+
+
+            for (String boneName : sorted) {
+                boneName = originalId.get(boneName);
+                JsonObject visibilityItem = new JsonObject();
+                int n = (int) Math.pow(2, (i % 24));
+                Bone bone = bones.get(boneName);
+
+                if (!processedBones.contains(bone) && (uvAllBones.contains(boneName) || uvBonesId.contains("*"))) {
+                    visibilityItem.addProperty(boneName, "math.mod(math.floor(query.property('modelengine:bone" + i / 24 + "') / " + n + "), 2) == 1");
+                    partVisibility.add(visibilityItem);
+                    if (!uvBonesId.contains("*")) {
+                        processedBones.add(bone);
+                    }
+                }
+                i++;
+            }
+            controller.add("part_visibility", partVisibility);
+            //}
         }
-        Collections.sort(sorted);
-        for (String bone : sorted) {
-            bone = originalId.get(bone);
-            JsonObject visibilityItem = new JsonObject();
-            int n = (int) Math.pow(2, (i % 24));
-            visibilityItem.addProperty(bone, "math.mod(math.floor(query.property('modelengine:bone" + i / 24 + "') / " + n + "), 2) == 1");
-            partVisibility.add(visibilityItem);
-            i++;
-        }
-        controller.add("part_visibility", partVisibility);
-        //}
+
         return root.toString();
     }
 

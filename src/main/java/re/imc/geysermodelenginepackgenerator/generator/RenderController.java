@@ -2,17 +2,12 @@ package re.imc.geysermodelenginepackgenerator.generator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.internal.bind.TypeAdapters;
-import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.*;
 
 public class RenderController {
 
-    public static final Set<String> NEED_REMOVE_WHEN_SORT = Set.of("pbody_", "plarm_", "prarm_", "plleg_", "prleg_", "phead_", "p_", "uv_");
+    public static final Set<String> NEED_REMOVE_WHEN_SORT = Set.of("pbody_", "plarm_", "prarm_", "plleg_", "prleg_", "phead_", "p_");
     String modelId;
     Map<String, Bone> bones;
     Entity entity;
@@ -35,8 +30,8 @@ public class RenderController {
         for (String key : entity.textureMap.keySet()) {
 
             Texture texture = entity.textureMap.get(key);
-            Set<String> uvBonesId = entity.getTextureConfig().bingingBones.get(key);
-            TextureConfig.AnimTextureOptions anim = entity.getTextureConfig().getAnimTextures().get(key);
+            Set<String> uvBonesId = entity.getModelConfig().bingingBones.get(key);
+            ModelConfig.AnimTextureOptions anim = entity.getModelConfig().getAnimTextures().get(key);
 
             JsonObject controller = new JsonObject();
 
@@ -106,17 +101,24 @@ public class RenderController {
             for (String boneName : sorted) {
                 boneName = originalId.get(boneName);
                 JsonObject visibilityItem = new JsonObject();
-                int n = (int) Math.pow(2, (i % 24));
                 Bone bone = bones.get(boneName);
 
                 if (!processedBones.contains(bone) && (uvAllBones.contains(boneName) || uvBonesId.contains("*"))) {
+                    int index = i;
+                    if (boneName.startsWith("uv_")) {
+                        index = sorted.indexOf(bone.parent);
+                    }
+                    int n = (int) Math.pow(2, (index % 24));
+
                     visibilityItem.addProperty(boneName, "math.mod(math.floor(query.property('modelengine:bone" + i / 24 + "') / " + n + "), 2) == 1");
                     partVisibility.add(visibilityItem);
                     if (!uvBonesId.contains("*")) {
                         processedBones.add(bone);
                     }
                 }
-                i++;
+                if (!boneName.startsWith("uv_")) {
+                    i++;
+                }
             }
             controller.add("part_visibility", partVisibility);
             //}

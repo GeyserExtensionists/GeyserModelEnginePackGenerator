@@ -13,10 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GeneratorMain {
     public static final Map<String, Entity> entityMap = new HashMap<>();
@@ -42,11 +39,12 @@ public class GeneratorMain {
         String modelId = folder.getName().toLowerCase();
 
         Entity entity = new Entity(modelId);
-        TextureConfig textureConfig = new TextureConfig();
-        File textureConfigFile = new File(folder, "texture_config.json");
+        ModelConfig modelConfig = new ModelConfig();
+        boolean shouldOverrideConfig = false;
+        File textureConfigFile = new File(folder, "config.json");
         if (textureConfigFile.exists()) {
             try {
-                textureConfig = GSON.fromJson(Files.readString(textureConfigFile.toPath()), TextureConfig.class);
+                modelConfig = GSON.fromJson(Files.readString(textureConfigFile.toPath()), ModelConfig.class);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -60,14 +58,15 @@ public class GeneratorMain {
                 String textureName = e.getName().replace(".png", "");
                 Set<String> bindingBones = new HashSet<>();
                 bindingBones.add("*");
-                if (textureConfig.getBingingBones().containsKey(textureName)) {
-                    bindingBones = textureConfig.getBingingBones().get(textureName);
+                if (modelConfig.getBingingBones().containsKey(textureName)) {
+                    bindingBones = modelConfig.getBingingBones().get(textureName);
                 }
                 Map<String, Texture> map = textureMap.computeIfAbsent(modelId, s -> new HashMap<>());
                 map.put(textureName, new Texture(modelId, currentPath, bindingBones, e.toPath()));
                 entity.setTextureMap(map);
-                if (textureConfig.getBingingBones().isEmpty()) {
-                    textureConfig.getBingingBones().put(textureName, Set.of("*"));
+                if (modelConfig.getBingingBones().isEmpty()) {
+                    modelConfig.getBingingBones().put(textureName, Set.of("*"));
+                    shouldOverrideConfig = true;
                 }
 
             }
@@ -99,26 +98,30 @@ public class GeneratorMain {
             }
         }
         if (canAdd) {
-            File config = new File(folder, "config.properties");
+            // old config
+            File oldConfig = new File(folder, "config.properties");
+            Properties old = new Properties();
             try {
-                if (config.exists()) {
-                    entity.getConfig().load(new FileReader(config));
-                } else {
-                    entity.getConfig().setProperty("head-rotation", "true");
-                    entity.getConfig().setProperty("material", "entity_alphatest_change_color");
-                    entity.getConfig().setProperty("blend-transition", "true");
-                    entity.getConfig().store(new FileWriter(config), "");
+                if (oldConfig.exists()) {
+                    old.load(new FileReader(oldConfig));
+                    modelConfig.setMaterial(old.getProperty("material", "entity_alphatest_change_color"));
+                    modelConfig.setEnableBlendTransition(Boolean.parseBoolean(old.getProperty("blend-transition", "true")));
+                    modelConfig.setEnableHeadRotation(Boolean.parseBoolean(old.getProperty("head-rotation", "true")));
+                    shouldOverrideConfig = true;
+                    oldConfig.delete();
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            try {
-                Files.writeString(textureConfigFile.toPath(), GSON.toJson(textureConfig));
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
 
-            entity.setTextureConfig(textureConfig);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            if (shouldOverrideConfig) {
+                try {
+                    Files.writeString(textureConfigFile.toPath(), GSON.toJson(modelConfig));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            entity.setModelConfig(modelConfig);
             entity.setPath(currentPath);
             entityMap.put(modelId, entity);
         }
@@ -237,7 +240,6 @@ public class GeneratorMain {
 
         for (Map.Entry<String, Entity> entry : entityMap.entrySet()) {
             Entity entity = entry.getValue();
-            entity.getConfig().setProperty("render_controller", "controller.render." + entry.getKey());
             entity.modify();
 
             Path entityPath = entityFolder.toPath().resolve(entity.getPath() + entry.getKey() + ".entity.json");

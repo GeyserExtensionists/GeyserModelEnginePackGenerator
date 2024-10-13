@@ -14,8 +14,14 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @Setter
-public class TextureConfig {
+public class ModelConfig {
 
+    @SerializedName("head_rotation")
+    boolean enableHeadRotation = true;
+    @SerializedName("material")
+    String material = "entity_alphatest_change_color_one_sided";
+    @SerializedName("blend_transition")
+    boolean enableBlendTransition = true;
     @SerializedName("binding_bones")
     Map<String, Set<String>> bingingBones = new HashMap<>();
     @SerializedName("anim_textures")
@@ -26,7 +32,6 @@ public class TextureConfig {
     @Getter
     @Setter
     public static class AnimTextureOptions {
-        boolean animUv;
         float fps;
         int frames;
     }

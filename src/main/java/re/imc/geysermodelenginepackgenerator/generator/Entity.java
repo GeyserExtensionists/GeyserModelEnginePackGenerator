@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.zimzaza4.geyserutils.geyser.GeyserUtils;
-import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
 import java.util.*;
 
@@ -25,7 +24,7 @@ public class Entity {
                   "identifier": "modelengine:%entity_id%",
                   "materials": {
                     "default": "%material%",
-                    "anim": "entity_alphatest_anim_change_color"
+                    "anim": "entity_alphatest_anim_change_color_one_sided"
                   },
                   "textures": {
                   },
@@ -56,10 +55,9 @@ public class Entity {
     RenderController renderController;
     String path;
     Map<String, Texture> textureMap = new HashMap<>();
-    TextureConfig textureConfig;
+    ModelConfig modelConfig;
 
 
-    Properties config = new Properties();
 
 
 
@@ -72,8 +70,8 @@ public class Entity {
         json = new JsonParser().parse(TEMPLATE.replace("%entity_id%", modelId)
                 .replace("%geometry%", "geometry.modelengine_" + modelId)
                 .replace("%texture%", "textures/entity/" + path + modelId)
-                .replace("%look_at_target%",  Boolean.parseBoolean(config.getProperty("head-rotation", "true".toLowerCase())) ? "animation." + modelId + ".look_at_target" : "animation.none")
-                .replace("%material%", config.getProperty("material", "entity_alphatest_change_color"))).getAsJsonObject();
+                .replace("%look_at_target%",  modelConfig.isEnableHeadRotation() ? "animation." + modelId + ".look_at_target" : "animation.none")
+                .replace("%material%", modelConfig.getMaterial())).getAsJsonObject();
 
         JsonObject description = json.get("minecraft:client_entity").getAsJsonObject().get("description").getAsJsonObject();
         JsonObject jsonAnimations = description.get("animations").getAsJsonObject();

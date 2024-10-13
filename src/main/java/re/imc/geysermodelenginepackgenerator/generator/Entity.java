@@ -11,6 +11,7 @@ import me.zimzaza4.geyserutils.geyser.GeyserUtils;
 import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -26,13 +27,12 @@ public class Entity {
                 "description": {
                   "identifier": "modelengine:%entity_id%",
                   "materials": {
-                    "default": "%material%"
+                    "default": "%material%",
+                    "anim": "entity_alphatest_anim_change_color"
                   },
                   "textures": {
-                    "default": "%texture%"
                   },
                   "geometry": {
-                    "default": "%geometry%"
                   },
                   "animations": {
                     "look_at_target": "%look_at_target%"
@@ -54,19 +54,13 @@ public class Entity {
     String modelId;
     JsonObject json;
     boolean hasHeadAnimation = false;
-    @Setter
-    @Getter
     Animation animation;
-
-    @Setter
-    @Getter
     Geometry geometry;
-
-    @Setter
-    @Getter
     RenderController renderController;
-
     String path;
+    Map<String, Texture> textureMap;
+    TextureConfig textureConfig;
+
 
     Properties config = new Properties();
 
@@ -87,6 +81,14 @@ public class Entity {
 
         JsonObject description = json.get("minecraft:client_entity").getAsJsonObject().get("description").getAsJsonObject();
         JsonObject jsonAnimations = description.get("animations").getAsJsonObject();
+        JsonObject jsonTextures = description.get("textures").getAsJsonObject();
+        JsonObject jsonGeometry = description.get("geometry").getAsJsonObject();
+
+        for (String name : textureMap.keySet()) {
+            jsonTextures.addProperty(name,"textures/entity/" + path + modelId + "/" + name);
+            jsonGeometry.addProperty(name, "geometry.modelengine_" + modelId);
+        }
+
         JsonArray animate = description.get("scripts").getAsJsonObject().get("animate").getAsJsonArray();
 
         if (animation != null) {

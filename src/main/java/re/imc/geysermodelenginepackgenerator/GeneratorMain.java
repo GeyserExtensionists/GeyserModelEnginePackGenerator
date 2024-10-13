@@ -14,13 +14,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class GeneratorMain {
     public static final Map<String, Entity> entityMap = new HashMap<>();
-    public static final  Map<String, Animation> animationMap = new HashMap<>();
-    public static final  Map<String, Geometry> geometryMap = new HashMap<>();
-    public static final  Map<String, Texture> textureMap = new HashMap<>();
+    public static final Map<String, Animation> animationMap = new HashMap<>();
+    public static final Map<String, Geometry> geometryMap = new HashMap<>();
+    public static final Map<String, Map<String, Texture>> textureMap = new HashMap<>();
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting()
             .create();
 
@@ -40,13 +42,23 @@ public class GeneratorMain {
         String modelId = folder.getName().toLowerCase();
 
         Entity entity = new Entity(modelId);
+        TextureConfig textureConfig = new TextureConfig();
         boolean canAdd = false;
         for (File e : folder.listFiles()) {
             if (e.isDirectory()) {
                 generateFromFolder(currentPath + folder.getName() + "/", e);
             }
             if (e.getName().endsWith(".png")) {
-                textureMap.put(modelId, new Texture(modelId, currentPath, e.toPath()));
+                String textureName = e.getName().replace(".png", "");
+                Set<String> bindingBones = new HashSet<>();
+                bindingBones.add("*");
+                if (!textureConfig.getBingingBones().containsKey(textureName)) {
+                    bindingBones = textureConfig.getBingingBones().get(textureName);
+                }
+                textureMap.computeIfAbsent(modelId, s -> new HashMap<>()).put(textureName, new Texture(modelId, currentPath, bindingBones, e.toPath()));
+                if (!textureConfig.getBingingBones().isEmpty()) {
+                    textureConfig.getBingingBones().put(textureName, Set.of("*"));
+                }
             }
             if (e.getName().endsWith(".json")) {
                 try {
@@ -136,6 +148,15 @@ public class GeneratorMain {
         materialsFolder.mkdirs();
 
         File materialFile = new File(materialsFolder, "entity.material");
+
+        if (!materialFile.exists()) {
+            try {
+                Files.writeString(materialFile.toPath(),
+                        Material.TEMPLATE, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         
         for (Map.Entry<String, Animation> entry : animationMap.entrySet()) {
             Entity entity = entityMap.get(entry.getKey());
@@ -179,7 +200,7 @@ public class GeneratorMain {
             }
         }
 
-        for (Map.Entry<String, Texture> entry : textureMap.entrySet()) {
+        for (Map.Entry<String, Map<String, Texture>> entry : textureMap.entrySet()) {
             Path path = texturesFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".png");
             path.toFile().getParentFile().mkdirs();
 
@@ -213,7 +234,7 @@ public class GeneratorMain {
 
             String id = entity.getModelId();
             if (!geometryMap.containsKey(id)) continue;
-            RenderController controller = new RenderController(id, geometryMap.get(id).getBones());
+            RenderController controller = new RenderController(id, geometryMap.get(id).getBones(), entity);
             entity.setRenderController(controller);
             Path renderPath = new File(renderControllersFolder, "controller.render." + id + ".json").toPath();
             if (renderPath.toFile().exists()) {

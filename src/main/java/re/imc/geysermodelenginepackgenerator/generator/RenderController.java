@@ -11,10 +11,12 @@ public class RenderController {
     public static final Set<String> NEED_REMOVE_WHEN_SORT = Set.of("pbody_", "plarm_", "prarm_", "plleg_", "prleg_", "phead_", "p_");
     String modelId;
     Set<String> bones;
+    Entity entity;
 
-    public RenderController(String modelId, Set<String> bones) {
+    public RenderController(String modelId, Set<String> bones, Entity entity) {
         this.modelId = modelId;
         this.bones = bones;
+        this.entity = entity;
     }
 
     // look, I'm fine with your other code and stuff, but I ain't using templates for JSON lmao

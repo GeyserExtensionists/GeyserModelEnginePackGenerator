@@ -40,8 +40,11 @@ public class RenderController {
             controller.addProperty("geometry", "Geometry.default");
 
             JsonArray materials = new JsonArray();
+            String material = entity.getModelConfig().getTextureMaterials().get(key);
             JsonObject materialItem = new JsonObject();
-            if (anim != null) {
+            if (material != null) {
+                materialItem.addProperty("*", "Material." + material);
+            } else if (anim != null) {
                 materialItem.addProperty("*", "Material.anim");
                 JsonObject uvAnim = new JsonObject();
                 controller.add("uv_anim", uvAnim);

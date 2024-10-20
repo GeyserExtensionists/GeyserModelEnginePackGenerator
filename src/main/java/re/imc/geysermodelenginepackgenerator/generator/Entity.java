@@ -76,7 +76,12 @@ public class Entity {
         JsonObject description = json.get("minecraft:client_entity").getAsJsonObject().get("description").getAsJsonObject();
         JsonObject jsonAnimations = description.get("animations").getAsJsonObject();
         JsonObject jsonTextures = description.get("textures").getAsJsonObject();
+        JsonObject jsonMaterials = description.get("materials").getAsJsonObject();
+
         JsonArray jsonRenderControllers = description.get("render_controllers").getAsJsonArray();
+
+        Map<String, String> materials = getModelConfig().getTextureMaterials();
+        materials.forEach(jsonMaterials::addProperty);
 
 
         for (String name : textureMap.keySet()) {

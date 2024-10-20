@@ -26,6 +26,12 @@ public class ModelConfig {
     Map<String, Set<String>> bingingBones = new HashMap<>();
     @SerializedName("anim_textures")
     Map<String, AnimTextureOptions> animTextures = new HashMap<>();
+    @SerializedName("texture_materials")
+    Map<String, String> textureMaterials = new HashMap<>();
+
+    public Map<String, String> getTextureMaterials() {
+        return textureMaterials != null ? textureMaterials : Map.of();
+    }
 
     @NoArgsConstructor
     @AllArgsConstructor

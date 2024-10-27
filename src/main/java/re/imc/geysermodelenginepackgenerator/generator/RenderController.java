@@ -32,6 +32,15 @@ public class RenderController {
 
             // Texture texture = entity.textureMap.get(key);
             Set<String> uvBonesId = entity.getModelConfig().bingingBones.get(key);
+
+            if (uvBonesId == null) {
+                if (!singleTexture) {
+                    continue;
+                } else {
+                    uvBonesId = new HashSet<>();
+                    uvBonesId.add("*");
+                }
+            }
             ModelConfig.AnimTextureOptions anim = entity.getModelConfig().getAnimTextures().get(key);
 
             JsonObject controller = new JsonObject();

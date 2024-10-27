@@ -8,11 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.zimzaza4.geyserutils.geyser.GeyserUtils;
-import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -26,13 +23,13 @@ public class Entity {
                 "description": {
                   "identifier": "modelengine:%entity_id%",
                   "materials": {
-                    "default": "%material%"
+                    "default": "%material%",
+                    "anim": "entity_alphatest_anim_change_color_one_sided"
                   },
                   "textures": {
-                    "default": "%texture%"
                   },
                   "geometry": {
-                    "default": "%geometry%"
+                  
                   },
                   "animations": {
                     "look_at_target": "%look_at_target%"
@@ -43,7 +40,6 @@ public class Entity {
                     ]
                   },
                   "render_controllers": [
-                    "%render_controller%"
                   ]
                 }
               }
@@ -54,21 +50,14 @@ public class Entity {
     String modelId;
     JsonObject json;
     boolean hasHeadAnimation = false;
-    @Setter
-    @Getter
     Animation animation;
-
-    @Setter
-    @Getter
     Geometry geometry;
-
-    @Setter
-    @Getter
     RenderController renderController;
-
     String path;
+    Map<String, Texture> textureMap = new HashMap<>();
+    ModelConfig modelConfig;
 
-    Properties config = new Properties();
+
 
 
 
@@ -79,14 +68,40 @@ public class Entity {
     public void modify() {
 
         json = new JsonParser().parse(TEMPLATE.replace("%entity_id%", modelId)
-                .replace("%geometry%", "geometry.modelengine_" + modelId)
+                .replace("%geometry%", "geometry.meg_" + modelId)
                 .replace("%texture%", "textures/entity/" + path + modelId)
-                .replace("%look_at_target%",  Boolean.parseBoolean(config.getProperty("head-rotation", "true".toLowerCase())) ? "animation." + modelId + ".look_at_target" : "animation.none")
-                .replace("%material%", config.getProperty("material", "entity_alphatest_change_color"))
-                .replace("%render_controller%", config.getProperty("render_controller", "controller.render.default"))).getAsJsonObject();
+                .replace("%look_at_target%",  modelConfig.isEnableHeadRotation() ? "animation." + modelId + ".look_at_target" : "animation.none")
+                .replace("%material%", modelConfig.getMaterial())).getAsJsonObject();
 
         JsonObject description = json.get("minecraft:client_entity").getAsJsonObject().get("description").getAsJsonObject();
         JsonObject jsonAnimations = description.get("animations").getAsJsonObject();
+        JsonObject jsonTextures = description.get("textures").getAsJsonObject();
+        JsonObject jsonGeometry = description.get("geometry").getAsJsonObject();
+        JsonObject jsonMaterials = description.get("materials").getAsJsonObject();
+
+        JsonArray jsonRenderControllers = description.get("render_controllers").getAsJsonArray();
+
+        Map<String, String> materials = getModelConfig().getTextureMaterials();
+        materials.forEach(jsonMaterials::addProperty);
+
+        if (modelConfig.getPerTextureUvSize().isEmpty()) {
+            jsonGeometry.addProperty("default", "geometry.meg_" + modelId);
+            jsonTextures.addProperty("default", "textures/entity/" + path + modelId + "/" + textureMap.keySet().stream().findFirst().orElse("def"));
+        }
+
+        for (String name : textureMap.keySet()) {
+            if (modelConfig.getPerTextureUvSize().containsKey(name)) {
+                Integer[] size = modelConfig.getPerTextureUvSize().getOrDefault(name, new Integer[]{16, 16});
+                String suffix = size[0] + "_" + size[1];
+
+                jsonGeometry.addProperty("t_" + suffix, "geometry.meg_" + modelId + "_" + suffix);
+                jsonTextures.addProperty(name, "textures/entity/" + path + modelId + "/" + name);
+
+            }
+            jsonRenderControllers.add("controller.render." + modelId + "_" + name);
+
+        }
+
         JsonArray animate = description.get("scripts").getAsJsonObject().get("animate").getAsJsonArray();
 
         if (animation != null) {
@@ -106,8 +121,10 @@ public class Entity {
         if (geometry == null) {
             return;
         }
-        for (int i = 0; i < Math.ceil(geometry.getBones().size() / 24f); i++) {
-            GeyserUtils.addProperty(id, "modelengine:bone" + i, Integer.class);
+        if (!modelConfig.isDisablePartVisibility()) {
+            for (int i = 0; i < Math.ceil(geometry.getBones().size() / 24f); i++) {
+                GeyserUtils.addProperty(id, "modelengine:bone" + i, Integer.class);
+            }
         }
 
         if (animation != null) {

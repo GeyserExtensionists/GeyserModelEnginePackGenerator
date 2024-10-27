@@ -35,6 +35,10 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -61,6 +65,21 @@
             <version>1.0.0</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/libs/geyserutils-geyser-1.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>me.rochblondiaux</groupId>
+            <artifactId>blockbenchmodelreader</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.GeyserMC.PackConverter</groupId>
+            <artifactId>bedrock-pack-schema</artifactId>
+            <version>3d8150474d</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.GeyserMC.PackConverter</groupId>
+            <artifactId>pack-schema-api</artifactId>
+            <version>3d8150474d</version>
         </dependency>
     </dependencies>
 </project>

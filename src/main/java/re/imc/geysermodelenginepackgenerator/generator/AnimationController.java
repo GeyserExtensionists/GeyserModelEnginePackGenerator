@@ -57,7 +57,7 @@ public class AnimationController {
             animationControllers.add("controller.animation." + animation.modelId + "." + id, controller);
             i++;
             if (entity != null) {
-                boolean blend = Boolean.parseBoolean(entity.getConfig().getProperty("blend-transition", "true"));
+                boolean blend = entity.getModelConfig().isEnableBlendTransition();
                 if (!blend) {
                     for (Map.Entry<String, JsonElement> states : controller.get("states").getAsJsonObject().entrySet()) {
                         states.getValue().getAsJsonObject().remove("blend_transition");

@@ -27,9 +27,10 @@ public class RenderController {
         root.add("render_controllers", renderControllers);
 
         Set<Bone> processedBones = new HashSet<>();
+        boolean singleTexture = entity.textureMap.size() == 1;
         for (String key : entity.textureMap.keySet()) {
 
-            Texture texture = entity.textureMap.get(key);
+            // Texture texture = entity.textureMap.get(key);
             Set<String> uvBonesId = entity.getModelConfig().bingingBones.get(key);
             ModelConfig.AnimTextureOptions anim = entity.getModelConfig().getAnimTextures().get(key);
 
@@ -37,10 +38,17 @@ public class RenderController {
 
             renderControllers.add("controller.render." + modelId + "_" + key, controller);
 
-            controller.addProperty("geometry", "Geometry.default");
-
+            if (!entity.getModelConfig().getPerTextureUvSize().isEmpty()) {
+                Integer[] size = entity.getModelConfig().getPerTextureUvSize().getOrDefault(key, new Integer[]{16, 16});
+                String suffix = "t_" + size[0] + "_" + size[1];
+                controller.addProperty("geometry", "Geometry." + suffix);
+            } else {
+                controller.addProperty("geometry", "Geometry.default");
+            }
             JsonArray materials = new JsonArray();
             String material = entity.getModelConfig().getTextureMaterials().get(key);
+
+
             JsonObject materialItem = new JsonObject();
             if (material != null) {
                 materialItem.addProperty("*", "Material." + material);
@@ -63,7 +71,11 @@ public class RenderController {
             controller.add("materials", materials);
 
             JsonArray textures = new JsonArray();
-            textures.add("Texture." + key);
+            if (singleTexture) {
+                textures.add("Texture.default");
+            } else {
+                textures.add("Texture." + key);
+            }
             controller.add("textures", textures);
 
             // if (enable) {
@@ -94,9 +106,6 @@ public class RenderController {
                 if (!bones.containsKey(uvBone)) {
                     continue;
                 }
-                for (Bone child : bones.get(uvBone).allChildren) {
-                    uvAllBones.add(child.getName());
-                }
                 uvAllBones.add(uvBone);
             }
 
@@ -105,15 +114,27 @@ public class RenderController {
                 boneName = originalId.get(boneName);
                 JsonObject visibilityItem = new JsonObject();
                 Bone bone = bones.get(boneName);
+                boolean uvParent = false;
+                for (Bone child : bone.children) {
+                    if (child.getName().startsWith("uv_")) {
+                        if (uvAllBones.contains(child.getName())) {
+                            uvParent = true;
+                        }
+                    }
+                }
 
-                if (!processedBones.contains(bone) && (uvAllBones.contains(boneName) || uvBonesId.contains("*"))) {
+                if (!processedBones.contains(bone) && (uvParent || uvAllBones.contains(boneName) || uvBonesId.contains("*"))) {
                     int index = i;
                     if (boneName.startsWith("uv_")) {
                         index = sorted.indexOf(bone.parent);
                     }
-                    int n = (int) Math.pow(2, (index % 24));
 
-                    visibilityItem.addProperty(boneName, "math.mod(math.floor(query.property('modelengine:bone" + i / 24 + "') / " + n + "), 2) == 1");
+                    int n = (int) Math.pow(2, (index % 24));
+                    if (entity.modelConfig.isDisablePartVisibility()) {
+                        visibilityItem.addProperty(boneName, true);
+                    } else {
+                        visibilityItem.addProperty(boneName, "math.mod(math.floor(query.property('modelengine:bone" + index / 24 + "') / " + n + "), 2) == 1");
+                    }
                     partVisibility.add(visibilityItem);
                     if (!uvBonesId.contains("*")) {
                         processedBones.add(bone);

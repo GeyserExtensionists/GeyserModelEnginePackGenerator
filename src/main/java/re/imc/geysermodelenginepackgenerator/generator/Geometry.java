@@ -18,6 +18,7 @@ public class Geometry {
 
 
     String modelId;
+    String geometryId;
     JsonObject json;
     Map<String, Bone> bones = new HashMap<>();
 
@@ -26,7 +27,16 @@ public class Geometry {
         this.json = new JsonParser().parse(json).getAsJsonObject();
     }
     public void setId(String id) {
+        geometryId = id;
         getInternal().get("description").getAsJsonObject().addProperty("identifier", id);
+    }
+
+    public void setTextureWidth(int w) {
+        getInternal().get("description").getAsJsonObject().addProperty("texture_width", w);
+    }
+
+    public void setTextureHeight(int h) {
+        getInternal().get("description").getAsJsonObject().addProperty("texture_height", h);
     }
 
     public JsonObject getInternal() {
@@ -67,7 +77,7 @@ public class Geometry {
                 }
             }
         }
-        setId("geometry.modelengine_" + modelId);
+        setId("geometry.meg_" + modelId);
     }
 
     public void addAllChildren(Bone p, Bone c) {

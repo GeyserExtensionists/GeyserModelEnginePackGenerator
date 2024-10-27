@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.Set;
 

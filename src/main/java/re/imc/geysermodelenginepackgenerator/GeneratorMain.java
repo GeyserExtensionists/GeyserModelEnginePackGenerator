@@ -5,9 +5,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import re.imc.geysermodelenginepackgenerator.generator.*;
 
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -210,12 +210,42 @@ public class GeneratorMain {
             entry.getValue().modify();
             Path path = modelsFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + ".geo.json");
             path.toFile().getParentFile().mkdirs();
+            String id = entry.getValue().getGeometryId();
+
+            Entity entity = entityMap.get(entry.getKey());
+            if (entity != null) {
+                ModelConfig modelConfig = entity.getModelConfig();
+                if (!modelConfig.getPerTextureUvSize().isEmpty()) {
+                    for (Map.Entry<String, Texture> textureEntry : entity.getTextureMap().entrySet()) {
+                        String name = textureEntry.getKey();
+
+                        Integer[] size = modelConfig.getPerTextureUvSize().getOrDefault(name, new Integer[]{16, 16});
+                        String suffix = size[0] + "_" + size[1];
+
+                        path = modelsFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + "_" + suffix + ".geo.json");
+
+                        entry.getValue().setId(id + "_" + suffix);
+
+                        if (path.toFile().exists()) {
+                            continue;
+                        }
+
+                        try {
+                            Files.writeString(path, GSON.toJson(entry.getValue().getJson()), StandardCharsets.UTF_8);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+            }
 
             if (path.toFile().exists()) {
                 continue;
             }
+
             try {
-                Files.writeString(path, entry.getValue().getJson().toString(), StandardCharsets.UTF_8);
+                Files.writeString(path, GSON.toJson(entry.getValue().getJson()), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 e.printStackTrace();
             }

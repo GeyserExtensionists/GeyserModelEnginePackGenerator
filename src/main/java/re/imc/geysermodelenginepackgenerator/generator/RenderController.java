@@ -27,7 +27,7 @@ public class RenderController {
         root.add("render_controllers", renderControllers);
 
         Set<Bone> processedBones = new HashSet<>();
-        boolean singleTexture = entity.textureMap.size() == 1;
+        boolean singleTexture = entity.textureMap.size() == 1 && entity.modelConfig.getPerTextureUvSize().isEmpty();
         for (String key : entity.textureMap.keySet()) {
 
             // Texture texture = entity.textureMap.get(key);
@@ -103,10 +103,10 @@ public class RenderController {
                 if (uvBone.equals("*")) {
                     uvAllBones.addAll(bones.keySet());
                 }
-                if (!bones.containsKey(uvBone)) {
+                if (!bones.containsKey(uvBone.toLowerCase())) {
                     continue;
                 }
-                uvAllBones.add(uvBone);
+                uvAllBones.add(uvBone.toLowerCase());
             }
 
 

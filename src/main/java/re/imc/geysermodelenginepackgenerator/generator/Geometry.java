@@ -53,7 +53,7 @@ public class Geometry {
             if (element.isJsonObject()) {
                 String name = element.getAsJsonObject().get("name").getAsString().toLowerCase(Locale.ROOT);
 
-                String parent = element.getAsJsonObject().has("parent") ? element.getAsJsonObject().get("parent").getAsString() : null;
+                String parent = element.getAsJsonObject().has("parent") ? element.getAsJsonObject().get("parent").getAsString().toLowerCase() : null;
                 element.getAsJsonObject().remove("name");
 
                 element.getAsJsonObject().addProperty("name", name);

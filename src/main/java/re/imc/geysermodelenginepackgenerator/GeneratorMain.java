@@ -221,7 +221,8 @@ public class GeneratorMain {
 
                         Integer[] size = modelConfig.getPerTextureUvSize().getOrDefault(name, new Integer[]{16, 16});
                         String suffix = size[0] + "_" + size[1];
-
+                        entry.getValue().setTextureWidth(size[0]);
+                        entry.getValue().setTextureHeight(size[1]);
                         path = modelsFolder.toPath().resolve(entry.getValue().getPath() + entry.getKey() + "_" + suffix + ".geo.json");
 
                         entry.getValue().setId(id + "_" + suffix);

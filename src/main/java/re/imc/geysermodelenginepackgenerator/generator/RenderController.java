@@ -124,7 +124,7 @@ public class RenderController {
                 JsonObject visibilityItem = new JsonObject();
                 Bone bone = bones.get(boneName);
                 boolean uvParent = false;
-                for (Bone child : bone.children) {
+                for (Bone child : bone.getAllChildren()) {
                     if (child.getName().startsWith("uv_")) {
                         if (uvAllBones.contains(child.getName())) {
                             uvParent = true;

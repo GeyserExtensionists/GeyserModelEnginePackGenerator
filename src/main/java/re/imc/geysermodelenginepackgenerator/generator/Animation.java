@@ -10,11 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import re.imc.geysermodelenginepackgenerator.GeneratorMain;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 

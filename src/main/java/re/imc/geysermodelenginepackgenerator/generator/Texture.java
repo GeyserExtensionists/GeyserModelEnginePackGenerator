@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.Set;
@@ -16,6 +17,6 @@ public class Texture {
     String modelId;
     String path;
     Set<String> bindingBones;
-    Path originalPath;
+    BufferedImage image;
 
 }

@@ -1,10 +1,7 @@
 package re.imc.geysermodelenginepackgenerator.generator;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +11,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class ModelConfig {
 
     @SerializedName("head_rotation")

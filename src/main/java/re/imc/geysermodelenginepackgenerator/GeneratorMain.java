@@ -6,14 +6,15 @@ import com.google.gson.JsonParser;
 import re.imc.geysermodelenginepackgenerator.generator.*;
 
 import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 public class GeneratorMain {
     public static final Map<String, Entity> entityMap = new HashMap<>();
@@ -31,6 +32,84 @@ public class GeneratorMain {
 
         startGenerate(source, output);
     }
+
+
+    public static void generateFromZip(String currentPath, String modelId, ZipFile zip) {
+        Entity entity = new Entity(modelId);
+        ModelConfig modelConfig = new ModelConfig();
+        ZipEntry textureConfigFile = null;
+        for (Iterator<? extends ZipEntry> it = zip.entries().asIterator(); it.hasNext(); ) {
+            ZipEntry entry = it.next();
+            if (entry.getName().endsWith("config.json")) {
+                textureConfigFile = entry;
+            }
+        }
+
+        if (textureConfigFile != null) {
+            try {
+                modelConfig = GSON.fromJson(new InputStreamReader(zip.getInputStream(textureConfigFile)), ModelConfig.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        boolean canAdd = false;
+        for (Iterator<? extends ZipEntry> it = zip.entries().asIterator(); it.hasNext(); ) {
+            ZipEntry e = it.next();
+            if (e.getName().endsWith(".png")) {
+                String textureName = e.getName().replace(".png", "");
+                Set<String> bindingBones = new HashSet<>();
+                bindingBones.add("*");
+                if (modelConfig.getBingingBones().containsKey(textureName)) {
+                    bindingBones = modelConfig.getBingingBones().get(textureName);
+                }
+                Map<String, Texture> map = textureMap.computeIfAbsent(modelId, s -> new HashMap<>());
+                try {
+                    map.put(textureName, new Texture(modelId, currentPath, bindingBones, ImageIO.read(zip.getInputStream(e))));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                entity.setTextureMap(map);
+                if (modelConfig.getBingingBones().isEmpty()) {
+                    modelConfig.getBingingBones().put(textureName, Set.of("*"));
+                }
+
+            }
+            if (e.getName().endsWith(".json")) {
+                try {
+                    InputStream stream = zip.getInputStream(e);
+                    String json = new String(stream.readAllBytes());
+                    if (isAnimationFile(json)) {
+                        Animation animation = new Animation();
+                        animation.setPath(currentPath);
+                        animation.setModelId(modelId);
+
+                        animation.load(json);
+                        animationMap.put(modelId, animation);
+                        entity.setAnimation(animation);
+                    }
+
+                    if (isGeometryFile(json)) {
+                        Geometry geometry = new Geometry();
+                        geometry.load(json);
+                        geometry.setPath(currentPath);
+                        geometry.setModelId(modelId);
+                        geometryMap.put(modelId, geometry);
+                        entity.setGeometry(geometry);
+                        canAdd = true;
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        if (canAdd) {
+            entity.setModelConfig(modelConfig);
+            entity.setPath(currentPath);
+            entityMap.put(modelId, entity);
+        }
+    }
+
+
 
     public static void generateFromFolder(String currentPath, File folder) {
         if (folder.listFiles() == null) {
@@ -54,6 +133,13 @@ public class GeneratorMain {
             if (e.isDirectory()) {
                 generateFromFolder(currentPath + folder.getName() + "/", e);
             }
+            if (e.getName().endsWith(".zip")) {
+                try {
+                    generateFromZip(currentPath, e.getName().replace(".zip", "").toLowerCase(Locale.ROOT), new ZipFile(e));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
             if (e.getName().endsWith(".png")) {
                 String textureName = e.getName().replace(".png", "");
                 Set<String> bindingBones = new HashSet<>();
@@ -62,7 +148,11 @@ public class GeneratorMain {
                     bindingBones = modelConfig.getBingingBones().get(textureName);
                 }
                 Map<String, Texture> map = textureMap.computeIfAbsent(modelId, s -> new HashMap<>());
-                map.put(textureName, new Texture(modelId, currentPath, bindingBones, e.toPath()));
+                try {
+                    map.put(textureName, new Texture(modelId, currentPath, bindingBones, ImageIO.read(e)));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
                 entity.setTextureMap(map);
                 if (modelConfig.getBingingBones().isEmpty()) {
                     modelConfig.getBingingBones().put(textureName, Set.of("*"));
@@ -126,17 +216,9 @@ public class GeneratorMain {
             entityMap.put(modelId, entity);
         }
     }
+
     public static void startGenerate(File source, File output) {
-
-
-        for (File file1 : source.listFiles()) {
-            if (file1.isDirectory()) {
-                if (file1.listFiles() == null) {
-                    continue;
-                }
-                generateFromFolder("", file1);
-            }
-        }
+        generateFromFolder("", source);
 
         File animationsFolder = new File(output, "animations");
         File entityFolder = new File(output, "entity");
@@ -262,7 +344,7 @@ public class GeneratorMain {
                     continue;
                 }
                 try {
-                    Files.copy(entry.getValue().getOriginalPath(), path, StandardCopyOption.REPLACE_EXISTING);
+                    ImageIO.write(entry.getValue().getImage(), "png", path.toFile());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

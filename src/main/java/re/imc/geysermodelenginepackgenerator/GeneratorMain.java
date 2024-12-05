@@ -344,7 +344,9 @@ public class GeneratorMain {
                     continue;
                 }
                 try {
-                    ImageIO.write(entry.getValue().getImage(), "png", path.toFile());
+                    if (entry.getValue().getImage() != null) {
+                        ImageIO.write(entry.getValue().getImage(), "png", path.toFile());
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

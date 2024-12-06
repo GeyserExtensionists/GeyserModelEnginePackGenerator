@@ -64,7 +64,7 @@ public class GeneratorMain {
                 }
                 Map<String, Texture> map = textureMap.computeIfAbsent(modelId, s -> new HashMap<>());
                 try {
-                    map.put(textureName, new Texture(modelId, currentPath, bindingBones, ImageIO.read(zip.getInputStream(e))));
+                    map.put(textureName, new Texture(modelId, currentPath, bindingBones, zip.getInputStream(e).readAllBytes()));
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -111,11 +111,11 @@ public class GeneratorMain {
 
 
 
-    public static void generateFromFolder(String currentPath, File folder) {
+    public static void generateFromFolder(String currentPath, File folder, boolean root) {
         if (folder.listFiles() == null) {
             return;
         }
-        String modelId = folder.getName().toLowerCase();
+        String modelId = root ? "" : folder.getName().toLowerCase();
 
         Entity entity = new Entity(modelId);
         ModelConfig modelConfig = new ModelConfig();
@@ -131,7 +131,7 @@ public class GeneratorMain {
         boolean canAdd = false;
         for (File e : folder.listFiles()) {
             if (e.isDirectory()) {
-                generateFromFolder(currentPath + folder.getName() + "/", e);
+                generateFromFolder(currentPath + folder.getName() + "/", e, false);
             }
             if (e.getName().endsWith(".zip")) {
                 try {
@@ -149,7 +149,7 @@ public class GeneratorMain {
                 }
                 Map<String, Texture> map = textureMap.computeIfAbsent(modelId, s -> new HashMap<>());
                 try {
-                    map.put(textureName, new Texture(modelId, currentPath, bindingBones, ImageIO.read(e)));
+                    map.put(textureName, new Texture(modelId, currentPath, bindingBones, Files.readAllBytes(e.toPath())));
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -218,7 +218,7 @@ public class GeneratorMain {
     }
 
     public static void startGenerate(File source, File output) {
-        generateFromFolder("", source);
+        generateFromFolder("", source, true);
 
         File animationsFolder = new File(output, "animations");
         File entityFolder = new File(output, "entity");
@@ -345,7 +345,7 @@ public class GeneratorMain {
                 }
                 try {
                     if (entry.getValue().getImage() != null) {
-                        ImageIO.write(entry.getValue().getImage(), "png", path.toFile());
+                        Files.write(path, entry.getValue().getImage());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

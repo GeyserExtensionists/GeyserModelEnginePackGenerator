@@ -17,6 +17,6 @@ public class Texture {
     String modelId;
     String path;
     Set<String> bindingBones;
-    BufferedImage image;
+    byte[] image;
 
 }

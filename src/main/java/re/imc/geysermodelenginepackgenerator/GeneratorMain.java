@@ -131,7 +131,7 @@ public class GeneratorMain {
         boolean canAdd = false;
         for (File e : folder.listFiles()) {
             if (e.isDirectory()) {
-                generateFromFolder(currentPath + folder.getName() + "/", e, false);
+                generateFromFolder(currentPath + (root ? "" : folder.getName() + "/"), e, false);
             }
             if (e.getName().endsWith(".zip")) {
                 try {

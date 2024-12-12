@@ -56,7 +56,8 @@ public class GeneratorMain {
         for (Iterator<? extends ZipEntry> it = zip.entries().asIterator(); it.hasNext(); ) {
             ZipEntry e = it.next();
             if (e.getName().endsWith(".png")) {
-                String textureName = e.getName().replace(".png", "");
+                String[] path = e.getName().split("/");
+                String textureName = path[path.length - 1].replace(".png", "");
                 Set<String> bindingBones = new HashSet<>();
                 bindingBones.add("*");
                 if (modelConfig.getBingingBones().containsKey(textureName)) {

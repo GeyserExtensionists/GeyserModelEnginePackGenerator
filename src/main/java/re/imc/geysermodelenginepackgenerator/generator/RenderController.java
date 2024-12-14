@@ -20,6 +20,8 @@ public class RenderController {
 
     // look, I'm fine with your other code and stuff, but I ain't using templates for JSON lmao
     public String generate() {
+        List<String> se = new ArrayList<>(bones.keySet());
+        Collections.sort(se);
         JsonObject root = new JsonObject();
         root.addProperty("format_version", "1.8.0");
 
@@ -118,12 +120,12 @@ public class RenderController {
                 uvAllBones.add(uvBone.toLowerCase());
             }
 
-
             for (String boneName : sorted) {
                 boneName = originalId.get(boneName);
                 JsonObject visibilityItem = new JsonObject();
                 Bone bone = bones.get(boneName);
                 boolean uvParent = false;
+
                 for (Bone child : bone.getAllChildren()) {
                     if (child.getName().startsWith("uv_")) {
                         if (uvAllBones.contains(child.getName())) {
@@ -132,6 +134,16 @@ public class RenderController {
                     }
                 }
 
+
+                for (Map.Entry<String, Set<String>> entry : entity.getModelConfig().bingingBones.entrySet()) {
+                    if (entry.getKey().equals(key)) {
+                        continue;
+                    }
+                    if (entry.getValue().stream().anyMatch(boneName::equalsIgnoreCase)) {
+                        uvParent = false;
+                        break;
+                    }
+                }
                 if (!processedBones.contains(bone) && (uvParent || uvAllBones.contains(boneName) || uvBonesId.contains("*"))) {
                     int index = i;
                     if (boneName.startsWith("uv_")) {

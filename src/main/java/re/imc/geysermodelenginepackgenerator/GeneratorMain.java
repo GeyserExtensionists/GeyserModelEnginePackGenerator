@@ -36,6 +36,9 @@ public class GeneratorMain {
 
     public static void generateFromZip(String currentPath, String modelId, ZipFile zip) {
         Entity entity = new Entity(modelId);
+        if (entityMap.containsKey(modelId)) {
+            return;
+        }
         ModelConfig modelConfig = new ModelConfig();
         ZipEntry textureConfigFile = null;
         for (Iterator<? extends ZipEntry> it = zip.entries().asIterator(); it.hasNext(); ) {
@@ -140,6 +143,9 @@ public class GeneratorMain {
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
+            }
+            if (entityMap.containsKey(modelId)) {
+                continue;
             }
             if (e.getName().endsWith(".png")) {
                 String textureName = e.getName().replace(".png", "");

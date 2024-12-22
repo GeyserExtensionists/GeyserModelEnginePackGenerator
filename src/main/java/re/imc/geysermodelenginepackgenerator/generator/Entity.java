@@ -16,6 +16,9 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Entity {
+
+    public static final Set<String> REGISTERED_ENTITIES = new HashSet<>();
+
     public static final String TEMPLATE = """
             {
               "format_version": "1.10.0",
@@ -116,7 +119,14 @@ public class Entity {
 
     public void register() {
 
+
+
         String id = "modelengine:" + modelId;
+        boolean registered = REGISTERED_ENTITIES.contains(id);
+        if (registered) {
+            return;
+        }
+        REGISTERED_ENTITIES.add(id);
         GeyserUtils.addCustomEntity(id);
         if (geometry == null) {
             return;

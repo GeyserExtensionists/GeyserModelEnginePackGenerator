@@ -93,6 +93,9 @@ public class Entity {
         }
 
         for (String name : textureMap.keySet()) {
+            if (name.endsWith("_e")) {
+                continue;
+            }
             if (modelConfig.getPerTextureUvSize().containsKey(name)) {
                 Integer[] size = modelConfig.getPerTextureUvSize().getOrDefault(name, new Integer[]{16, 16});
                 String suffix = size[0] + "_" + size[1];

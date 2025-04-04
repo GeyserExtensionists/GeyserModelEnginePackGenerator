@@ -31,7 +31,9 @@ public class RenderController {
         Set<Bone> processedBones = new HashSet<>();
         boolean singleTexture = entity.textureMap.size() == 1 && entity.modelConfig.getPerTextureUvSize().isEmpty();
         for (String key : entity.textureMap.keySet()) {
-
+            if (key.endsWith("_e")) {
+                continue;
+            }
             // Texture texture = entity.textureMap.get(key);
             Set<String> uvBonesId = entity.getModelConfig().bingingBones.get(key);
 

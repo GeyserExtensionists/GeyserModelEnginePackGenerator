@@ -29,7 +29,7 @@ public class ModelConfig {
     @SerializedName("per_texture_uv_size")
     Map<String, Integer[]> perTextureUvSize;
     @SerializedName("disable_part_visibility")
-    boolean disablePartVisibility;
+    boolean disablePartVisibility = true;
 
     public Map<String, String> getTextureMaterials() {
         return textureMaterials != null ? textureMaterials : Map.of();

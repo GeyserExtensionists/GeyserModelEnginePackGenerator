@@ -51,7 +51,7 @@ public class AnimationController {
 
         Collections.sort(sorted);
         for (String id : sorted) {
-
+            id = id.replace(" ", "_");
             int n = (int) Math.pow(2, (i % 24));
             JsonObject controller = new JsonParser().parse(CONTROLLER_TEMPLATE.replace("%anim%", id).replace("%query%", "math.mod(math.floor(query.property('modelengine:anim" + i / 24 + "') / " + n + "), 2)")).getAsJsonObject();
             animationControllers.add("controller.animation." + animation.modelId + "." + id, controller);

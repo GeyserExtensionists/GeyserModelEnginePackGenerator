@@ -87,7 +87,7 @@ public class Animation {
                 }
             }
 
-            newAnimations.add("animation." + modelId + "." + element.getKey(), element.getValue());
+            newAnimations.add("animation." + modelId + "." + element.getKey().replace(" ", "_"), element.getValue());
         }
         json.add("animations", newAnimations);
 

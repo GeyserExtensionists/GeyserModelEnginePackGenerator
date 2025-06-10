@@ -112,6 +112,7 @@ public class Entity {
 
         if (animation != null) {
             for (String animation : animation.animationIds) {
+                animation = animation.replace(" ", "_");
                 String controller = "controller.animation." + modelId + "." + animation;
                 animate.add(animation + "_control");
                 jsonAnimations.addProperty(animation, "animation." + modelId + "." + animation);

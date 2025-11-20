@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import re.imc.geysermodelenginepackgenerator.GeneratorMain;
+import re.imc.geysermodelenginepackgenerator.PackGenerator;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -119,7 +119,7 @@ public class Animation {
         if (i == 0) {
             return;
         }
-        GeneratorMain.entityMap
+        PackGenerator.entityMap
                         .get(modelId).setHasHeadAnimation(true);
 
         object.add("bones", bones);

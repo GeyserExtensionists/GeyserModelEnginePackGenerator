@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.geysermc.geyser.api.extension.ExtensionLogger;
-import re.imc.geysermodelenginepackgenerator.ExtensionMain;
 
 import java.util.*;
 

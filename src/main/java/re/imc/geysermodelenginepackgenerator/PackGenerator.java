@@ -5,18 +5,15 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import re.imc.geysermodelenginepackgenerator.generator.*;
 
-import javax.imageio.ImageIO;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
-public class GeneratorMain {
+public class PackGenerator {
     public static final Map<String, Entity> entityMap = new HashMap<>();
     public static final Map<String, Animation> animationMap = new HashMap<>();
     public static final Map<String, Geometry> geometryMap = new HashMap<>();

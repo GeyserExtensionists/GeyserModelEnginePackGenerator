@@ -32,7 +32,7 @@ public class Entity {
                   "textures": {
                   },
                   "geometry": {
-                  
+            
                   },
                   "animations": {
                     "look_at_target": "%look_at_target%"

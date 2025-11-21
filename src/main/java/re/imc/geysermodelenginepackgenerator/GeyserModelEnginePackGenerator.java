@@ -103,7 +103,7 @@ public class GeyserModelEnginePackGenerator implements Extension {
 
     @Subscribe
     public void onPackLoad(GeyserLoadResourcePacksEvent event) {
-        if (Boolean.parseBoolean(System.getProperty("geyser-model-engine-auto-load-pack", "true")) || config.isAutoLoadPack()) {
+        if (Boolean.parseBoolean(System.getProperty("geyser-model-engine-auto-load-pack", "true")) && config.isAutoLoadPack()) {
             event.resourcePacks().add(generatedPackZip);
         }
     }
